@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="semios.api.mapper.DaoAllocationStrategyMapper">
+
+    <select id="selectByOriginProjectIdAndType" resultType="semios.api.model.entity.DaoAllocationStrategy">
+        select * from dao_allocation_strategy
+        where origin_project_id = #{originProjectId} and is_del = 0
+        <if test="tokenType != null and tokenType != ''">
+            and `type` = #{tokenType}" +
+        </if>
+        order by royalty_proportion desc, id desc
+    </select>
+
+    <update id="deleteByOriginProjectIdAndType">
+        update dao_allocation_strategy set is_del = 1
+        where origin_project_id = #{originProjectId}
+        <if test="tokenType != null and tokenType != ''">
+            and `type` = #{tokenType}
+        </if>
+    </update>
+
+
+    <select id="selectByProjectIdAndType" resultType="semios.api.model.entity.DaoAllocationStrategy">
+        select * from dao_allocation_strategy
+        where project_id = #{projectId} and is_del = 0
+        <if test="tokenType != null and tokenType != ''">
+            and `type` = #{tokenType}" +
+        </if>
+        order by royalty_proportion desc,id desc
+    </select>
+
+</mapper>

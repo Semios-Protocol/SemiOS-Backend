@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="semios.dex.mapper.LiquidityPriceRecordMapper">
+    <select id="getOneHourErc20Price" resultType="semios.dex.model.dto.response.Erc20PriceResDto">
+        select
+        t1.*
+        from
+        (
+        select
+        erc20_address,erc20_amount,eth_amount,record_time
+        from
+        liquidity_price_record t1
+        where
+        erc20_address in
+        <foreach open="(" close=")" separator="," collection="erc20AddressList" item="erc20Address" index="index">
+            #{erc20Address}
+        </foreach>
+        and record_time &lt;= #{searchTime}
+        and type = 0
+        ) t1
+        inner join
+        (
+        select
+        erc20_address,
+        max(record_time) as record_time
+        from
+        liquidity_price_record
+        where
+        erc20_address in
+        <foreach open="(" close=")" separator="," collection="erc20AddressList" item="erc20Address" index="index">
+            #{erc20Address}
+        </foreach>
+        and record_time &lt;= #{searchTime}
+        and type = 0
+        group by
+        erc20_address
+        ) t2 on
+        t1.erc20_address = t2.erc20_address
+        and t1.record_time = t2.record_time
+    </select>
+
+    <select id="getHoursErc20Price" resultType="semios.dex.model.dto.response.Erc20PriceResDto">
+        select *
+        from (select erc20_address,
+                     erc20_amount,
+                     eth_amount,
+                     trading_volume,
+                     record_time
+              from liquidity_price_record
+              where erc20_address = #{erc20Address}
+                and type = 0
+                and record_time &lt; #{startDate}
+              order by record_time desc
+              limit 1) t
+        UNION
+        select erc20_address,
+               erc20_amount,
+               eth_amount,
+               trading_volume,
+               record_time
+        from liquidity_price_record
+        where erc20_address = #{erc20Address}
+          and type = 0
+          and record_time &gt;= #{startDate}
+          and record_time &lt; #{endDate}
+        order by record_time
+    </select>
+
+    <select id="getHoursAssetPoolPrice" resultType="semios.dex.model.dto.response.AssetPoolPriceResDto">
+        select *
+        from (select erc20_address,
+                     price,
+                     trading_volume,
+                     record_time
+              from liquidity_price_record
+              where erc20_address = #{erc20Address}
+                and type = 1
+                and record_time &lt; #{startDate}
+              limit 1) t
+        UNION
+        select erc20_address,
+               price,
+               trading_volume,
+               record_time
+        from liquidity_price_record
+        where erc20_address = #{erc20Address}
+          and type = 1
+          and record_time &gt;= #{startDate}
+          and record_time &lt; #{endDate}
+        order by record_time
+    </select>
+</mapper>

@@ -1,0 +1,20 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: protodao_api
+          uri: http://localhost:9480
+          predicates:
+            - Method=OPTIONS,POST,GET
+            - Path=/api/**
+          filters:
+            - StripPrefix=1
+        #                     - Cookie=mycookie,mycookievalue
+
+        - id: protodao_dex
+          uri: http://localhost:9483
+          predicates:
+            - Method=OPTIONS,POST,GET
+            - Path=/dex-api/**
+          filters:
+            - StripPrefix=1

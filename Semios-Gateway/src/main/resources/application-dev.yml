@@ -1,0 +1,22 @@
+server:
+    port: 8581
+spring:
+    cloud:
+        gateway:
+            routes:
+                - id: dao4art_api
+                  uri: https://test-api.dao4.art
+                  predicates:
+                      - Method=OPTIONS,POST,GET
+                      - Path=/api/**
+                  filters:
+                      - StripPrefix=1
+                #                     - Cookie=mycookie,mycookievalue
+
+                - id: dao4art_dex
+                  uri: http://localhost:9283
+                  predicates:
+                      - Method=OPTIONS,POST,GET
+                      - Path=/dex/**
+                  filters:
+                      - StripPrefix=1

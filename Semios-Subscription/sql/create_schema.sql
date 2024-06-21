@@ -1,0 +1,1 @@
+CREATE SCHEMA `subscribe` DEFAULT CHARACTER SET utf8mb4;

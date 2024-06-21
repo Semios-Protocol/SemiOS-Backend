@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="semios.api.mapper.DaoDrbStatisticsMapper">
+
+
+    <select id="daosRanking" resultType="semios.api.model.entity.DaoDrbStatistics"
+            parameterType="com.baomidou.mybatisplus.core.metadata.IPage">
+        select dds.*,dao.dao_name,dao.dao_logo_url,dao.fee_pool,dao.dao_status,dao.dao_floor_price,dao.id as
+        dao_item_id,dao.canvas_floor_price,dao.erc20_payment_mode as erc20Pay
+        from dao as dao
+        left join ( SELECT MAX( id ) AS id,dao_id FROM dao_drb_statistics GROUP BY dao_id ) as dda on dao.id =
+        dda.dao_id
+        left join dao_drb_statistics as dds on dda.id = dds.id
+        where dao.dao_status > 0 and dao.dao_status != 3 and dds.dao_id is not null
+        order by dao.canvas_floor_price desc,dao.id desc
+    </select>
+</mapper>

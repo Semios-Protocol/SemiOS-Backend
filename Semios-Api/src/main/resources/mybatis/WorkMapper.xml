@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="semios.api.mapper.WorkMapper">
+
+
+    <select id="findFavoritesByUserAddress" resultType="semios.api.model.entity.Work">
+        select w.*
+        from favorites fav
+        left join `work` w
+        on fav.favorite_id = w.id
+        where w.is_del = 0 and w.work_status !=2 and fav.user_address = #{userAddress} and fav.`type` = 2
+        order by fav.create_time desc
+    </select>
+
+
+    <select id="unmintedWorks" resultType="semios.api.model.entity.Work">
+        select `work`.*
+        from `work` as `work`
+        left join dao on work.dao_id = dao.id
+        left join canvas as can on `work`.canvas_id = can.canvas_id
+        where `work`.is_del = 0 and `work`.work_status = 0 and dao.dao_status > 0 and dao.dao_status != 3
+        <if test="daoSortedReqVo.minPrice != null and daoSortedReqVo.minPrice != ''">
+            and IFNULL(IFNULL(`work`.fixed_price,can.current_price), dao.canvas_floor_price) <![CDATA[>=]]>
+            #{daoSortedReqVo.minPrice}
+        </if>
+        <if test="daoSortedReqVo.maxPrice != null and daoSortedReqVo.maxPrice != ''">
+            and IFNULL(IFNULL(`work`.fixed_price,can.current_price), dao.canvas_floor_price) <![CDATA[<=]]>
+            #{daoSortedReqVo.maxPrice}
+        </if>
+        <if test="daoSortedReqVo.fixedPrice != null and (daoSortedReqVo.fixedPrice == 0 or daoSortedReqVo.fixedPrice == 1)">
+            and `work`.price_type = #{daoSortedReqVo.fixedPrice}
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('0') == 0">
+            ORDER BY `work`.create_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('1') == 0">
+            ORDER BY `work`.favorite_amount desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('2') == 0">
+            ORDER BY IFNULL(IFNULL(`work`.fixed_price,can.current_price), dao.canvas_floor_price) desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('3') == 0">
+            ORDER BY IFNULL(IFNULL(`work`.fixed_price,can.current_price), dao.canvas_floor_price) ASC
+        </if>
+        ,`work`.id desc
+    </select>
+
+    <select id="selectNfts" resultType="semios.api.model.entity.Work">
+        select `work`.*
+        from `work` as `work`
+        where `work`.is_del = 0 and `work`.work_status = 1
+        <if test="daoSortedReqVo.minPrice != null and daoSortedReqVo.minPrice != ''">
+            and `work`.minted_price >= #{daoSortedReqVo.minPrice}
+        </if>
+        <if test="daoSortedReqVo.maxPrice != null and daoSortedReqVo.maxPrice != ''">
+            and `work`.minted_price <![CDATA[<=]]> #{daoSortedReqVo.maxPrice}
+        </if>
+        <if test="daoSortedReqVo.fixedPrice != null and (daoSortedReqVo.fixedPrice == 0 or daoSortedReqVo.fixedPrice == 1)">
+            and `work`.price_type = #{daoSortedReqVo.fixedPrice}
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('0') == 0">
+            ORDER BY `work`.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('1') == 0">
+            ORDER BY `work`.favorite_amount desc,`work`.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('2') == 0">
+            ORDER BY `work`.minted_price desc,`work`.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('3') == 0">
+            ORDER BY `work`.minted_price ASC,`work`.block_time desc
+        </if>
+        ,`work`.id desc
+    </select>
+
+    <select id="selectDrbNfts" resultType="semios.api.model.entity.Work">
+        select `work`.*
+        from `work` as `work`
+        where `work`.is_del = 0 and `work`.work_status = 1
+        <if test="daoSortedReqVo.currentDrb != null">
+            and `work`.drb_number = #{daoSortedReqVo.currentDrb}
+        </if>
+        <if test="daoSortedReqVo.minPrice != null and daoSortedReqVo.minPrice != ''">
+            and `work`.minted_price >= #{daoSortedReqVo.minPrice}
+        </if>
+        <if test="daoSortedReqVo.maxPrice != null and daoSortedReqVo.maxPrice != ''">
+            and `work`.minted_price <![CDATA[<=]]> #{daoSortedReqVo.maxPrice}
+        </if>
+        <if test="daoSortedReqVo.fixedPrice != null and (daoSortedReqVo.fixedPrice == 0 or daoSortedReqVo.fixedPrice == 1)">
+            and `work`.price_type = #{daoSortedReqVo.fixedPrice}
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('0') == 0">
+            ORDER BY `work`.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('1') == 0">
+            ORDER BY `work`.favorite_amount desc,`work`.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('2') == 0">
+            ORDER BY `work`.minted_price desc,`work`.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('3') == 0">
+            ORDER BY `work`.minted_price ASC,`work`.block_time desc
+        </if>
+        ,`work`.id desc
+    </select>
+
+
+    <select id="rankingNfts" resultType="semios.api.model.entity.Work">
+        select `work`.*,dao.dao_logo_url,canvas.canvas_logo,dao.dao_floor_price,dao.dao_status,dao.dao_name
+        from `work`
+        left join dao as dao on `work`.dao_id = dao.id
+        left join canvas as canvas on `work`.can_id = canvas.id
+        where `work`.is_del = 0 and `work`.work_status = 1
+        order by `work`.minted_price desc,`work`.id desc
+    </select>
+
+
+    <select id="findHoldByUserAddress" resultType="semios.api.model.entity.Work">
+        select *
+        from `work`
+        where is_del = 0 and work_status = 1 and owner_address = #{userAddress} order by block_time desc
+    </select>
+
+    <select id="findMintedByUserAddress" resultType="semios.api.model.entity.Work">
+        select *
+        from `work`
+        where is_del = 0 and work_status = 1 and minted_address = #{userAddress} order by block_time desc
+    </select>
+
+    <select id="findCreatorByUserAddress" resultType="semios.api.model.entity.Work">
+        select *
+        from `work`
+        where is_del = 0 and generate = 2 and work_status = 0 and creator_address = #{userAddress} order by
+        id desc
+    </select>
+
+    <delete id="deleteWorkByIds">
+        delete from `work` where id in
+        <foreach collection="workIds" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+
+    <select id="selectUnmintedWorkByProjectId" resultType="semios.api.model.entity.Work">
+        select `work`.*
+        from `work` as `work`
+        left join dao as dao on `work`.dao_id = dao.id
+        left join canvas as can on `work`.canvas_id = can.canvas_id
+        where `work`.is_del = 0 and `work`.work_status = 0 and `work`.project_id = #{daoSortedReqVo.projectId}
+        <if test="daoSortedReqVo.minPrice != null and daoSortedReqVo.minPrice != ''">
+            and IFNULL(IFNULL(`work`.fixed_price,can.current_price), dao.canvas_floor_price) <![CDATA[>=]]> #{daoSortedReqVo.minPrice}
+        </if>
+        <if test="daoSortedReqVo.maxPrice != null and daoSortedReqVo.maxPrice != ''">
+            and IFNULL(IFNULL(`work`.fixed_price,can.current_price), dao.canvas_floor_price) <![CDATA[<=]]> #{daoSortedReqVo.maxPrice}
+        </if>
+        <if test="daoSortedReqVo.fixedPrice != null and (daoSortedReqVo.fixedPrice == 0 or daoSortedReqVo.fixedPrice == 1)">
+            and `work`.price_type = #{daoSortedReqVo.fixedPrice}
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('0') == 0">
+            ORDER BY `work`.create_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('1') == 0">
+            ORDER BY `work`.favorite_amount desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('2') == 0">
+            ORDER BY IFNULL(IFNULL(`work`.fixed_price,can.current_price), dao.canvas_floor_price) desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('3') == 0">
+            ORDER BY IFNULL(IFNULL(`work`.fixed_price,can.current_price), dao.canvas_floor_price) ASC
+        </if>
+        ,`work`.id desc
+    </select>
+
+
+    <select id="selectNftByProjectId" resultType="semios.api.model.entity.Work">
+        select `work`.*
+        from `work` as `work`
+        where `work`.is_del = 0 and `work`.work_status = 1 and `work`.project_id = #{daoSortedReqVo.projectId}
+        <if test="daoSortedReqVo.minPrice != null and daoSortedReqVo.minPrice != ''">
+            and `work`.minted_price >= #{daoSortedReqVo.minPrice}
+        </if>
+        <if test="daoSortedReqVo.maxPrice != null and daoSortedReqVo.maxPrice != ''">
+            and `work`.minted_price <![CDATA[<=]]> #{daoSortedReqVo.maxPrice}
+        </if>
+        <if test="daoSortedReqVo.fixedPrice != null and (daoSortedReqVo.fixedPrice == 0 or daoSortedReqVo.fixedPrice == 1)">
+            and `work`.price_type = #{daoSortedReqVo.fixedPrice}
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('0') == 0">
+            ORDER BY `work`.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('1') == 0">
+            ORDER BY `work`.favorite_amount desc,`work`.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('2') == 0">
+            ORDER BY `work`.minted_price desc,`work`.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('3') == 0">
+            ORDER BY `work`.minted_price ASC,`work`.block_time desc
+        </if>
+        ,`work`.id desc
+    </select>
+
+    <select id="selectDrbNftByProjectId" resultType="semios.api.model.entity.Work">
+        select `work`.*
+        from `work` as `work`
+        where `work`.is_del = 0 and `work`.work_status = 1 and `work`.project_id = #{daoSortedReqVo.projectId} and
+        `work`.drb_number = #{daoSortedReqVo.currentDrb}
+        <if test="daoSortedReqVo.minPrice != null and daoSortedReqVo.minPrice != ''">
+            and `work`.minted_price >= #{daoSortedReqVo.minPrice}
+        </if>
+        <if test="daoSortedReqVo.maxPrice != null and daoSortedReqVo.maxPrice != ''">
+            and `work`.minted_price <![CDATA[<=]]> #{daoSortedReqVo.maxPrice}
+        </if>
+        <if test="daoSortedReqVo.fixedPrice != null and (daoSortedReqVo.fixedPrice == 0 or daoSortedReqVo.fixedPrice == 1)">
+            and `work`.price_type = #{daoSortedReqVo.fixedPrice}
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('0') == 0">
+            ORDER BY `work`.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('1') == 0">
+            ORDER BY `work`.favorite_amount desc,`work`.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('2') == 0">
+            ORDER BY `work`.minted_price desc,`work`.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('3') == 0">
+            ORDER BY `work`.minted_price ASC,`work`.block_time desc
+        </if>
+        ,`work`.id desc
+    </select>
+
+    <select id="selectWorkByCanvasId" resultType="semios.api.model.entity.Work">
+        select * from `work` w
+        <if test="canvasSortedReqVo.workStatus != 1">
+            left join canvas c on w.can_id = c.id
+        </if>
+        where w.is_del = 0 and
+        w.canvas_id = #{canvasSortedReqVo.canvasId}
+        and w.work_status = #{canvasSortedReqVo.workStatus}
+        <if test="canvasSortedReqVo.minPrice != null and canvasSortedReqVo.minPrice != ''">
+            <choose>
+                <when test="canvasSortedReqVo.workStatus == 1">
+                    and w.minted_price <![CDATA[>=]]> #{canvasSortedReqVo.minPrice}
+                </when>
+                <otherwise>
+                    and IFNULL(w.fixed_price,c.current_price) <![CDATA[>=]]> #{canvasSortedReqVo.minPrice}
+                </otherwise>
+            </choose>
+        </if>
+        <if test="canvasSortedReqVo.maxPrice != null and canvasSortedReqVo.maxPrice != ''">
+            <choose>
+                <when test="canvasSortedReqVo.workStatus == 1">
+                    and w.minted_price <![CDATA[<=]]> #{canvasSortedReqVo.maxPrice}
+                </when>
+                <otherwise>
+                    and IFNULL(w.fixed_price,c.current_price) <![CDATA[<=]]> #{canvasSortedReqVo.maxPrice}
+                </otherwise>
+            </choose>
+        </if>
+        <if test="canvasSortedReqVo.fixedPrice != null and (canvasSortedReqVo.fixedPrice == 0 or canvasSortedReqVo.fixedPrice == 1)">
+            and w.price_type = #{canvasSortedReqVo.fixedPrice}
+        </if>
+        <if test="canvasSortedReqVo.currentDrb != null">
+            and w.drb_number = #{canvasSortedReqVo.currentDrb}
+        </if>
+        <if test="canvasSortedReqVo.sortCondition != null and canvasSortedReqVo.sortCondition.compareTo('0') == 0">
+            ORDER BY w.block_time desc
+        </if>
+        <if test="canvasSortedReqVo.sortCondition != null and canvasSortedReqVo.sortCondition.compareTo('1') == 0">
+            ORDER BY w.favorite_amount desc,w.block_time desc
+        </if>
+        <if test="canvasSortedReqVo.sortCondition != null and canvasSortedReqVo.sortCondition.compareTo('2') == 0">
+            ORDER BY w.minted_price desc,w.block_time desc
+        </if>
+        <if test="canvasSortedReqVo.sortCondition != null and canvasSortedReqVo.sortCondition.compareTo('3') == 0">
+            ORDER BY w.minted_price ASC,w.block_time desc
+        </if>
+        ,w.id desc
+    </select>
+
+
+    <select id="selectWorksByDaoIds" resultType="semios.api.model.entity.Work">
+        select * from work
+        where work_status <![CDATA[<]]> 2 and dao_id in
+        <foreach collection="daoIds" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+</mapper>

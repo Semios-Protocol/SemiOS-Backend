@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="semios.api.mapper.UserTopupHarvestMapper">
+
+
+    <select id="selectUserTopupHarvestByDaoIds" resultType="semios.api.model.entity.UserTopupHarvest">
+        select * from user_topup_harvest
+        where dao_id in
+        <foreach collection="daoIds" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

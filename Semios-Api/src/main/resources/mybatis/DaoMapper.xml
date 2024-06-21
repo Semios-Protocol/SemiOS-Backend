@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="semios.api.mapper.DaoMapper">
+
+
+    <select id="findFavoritesByUserAddress" resultType="semios.api.model.entity.Dao">
+        select dao.*,dds.canvas,dds.works,dds.floor_price
+        from favorites fav
+        left join dao as dao on fav.favorite_id = dao.id
+        left join ( SELECT MAX( id ) AS id,dao_id FROM dao_drb_statistics GROUP BY dao_id ) as dda on dao.id =
+        dda.dao_id
+        left join dao_drb_statistics as dds on dda.id = dds.id
+        where fav.user_address = #{userAddress} and fav.`type` = 0 and dao.dao_status > 0
+        order by fav.create_time desc
+    </select>
+
+    <select id="collectionsDao" resultType="semios.api.model.entity.DaoDrbStatistics"
+            parameterType="semios.api.model.vo.req.DaoSortedReqVo">
+        select dds.*,dao.id as
+        daoId,dao.dao_name,dao.dao_logo_url,dao.dao_description,dao.dao_number,dao.dao_status,dao.dao_floor_price,dao.favorite_amount,dao.topup_mode,
+        case
+        when dao.canvas_floor_price is null then dao.dao_floor_price
+        when dao.canvas_floor_price is not null then dao.canvas_floor_price
+        end as dao_price,
+        case
+        when (dao.canvas_created_whitelist + dao.canvas_created_blacklist + dao.minter_works_whitelist +
+        dao.minter_works_blacklist + dao.global_mint_cap) > 0 then 1
+        when (dao.canvas_created_whitelist + dao.canvas_created_blacklist + dao.minter_works_whitelist +
+        dao.minter_works_blacklist + dao.global_mint_cap) = 0 then 0
+        end as whiteList
+        from dao as dao
+        left join ( SELECT MAX( id ) AS id,dao_id FROM dao_drb_statistics GROUP BY dao_id ) as dda on dao.id =
+        dda.dao_id
+        left join dao_drb_statistics as dds on dda.id = dds.id
+        where dao.dao_status > 0 and dao.dao_status != 3 and dao.is_together_dao = 0
+        <if test="daoSortedReqVo.daoIdList != null">
+            and dao.id in
+            <foreach collection="daoSortedReqVo.daoIdList" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="daoSortedReqVo.minPrice != null and daoSortedReqVo.minPrice != ''">
+            and
+            (case
+            when dao.canvas_floor_price is null then dao.dao_floor_price
+            when dao.canvas_floor_price is not null then dao.canvas_floor_price end) >= #{daoSortedReqVo.minPrice}
+        </if>
+        <if test="daoSortedReqVo.maxPrice != null and daoSortedReqVo.maxPrice != ''">
+            and
+            (case
+            when dao.canvas_floor_price is null then dao.dao_floor_price
+            when dao.canvas_floor_price is not null then dao.canvas_floor_price end) <![CDATA[<=]]>
+            #{daoSortedReqVo.maxPrice}
+        </if>
+        <if test="daoSortedReqVo.sortCondition == null or daoSortedReqVo.sortCondition == ''">
+            ORDER BY dao.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('0') == 0">
+            ORDER BY dao.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('1') == 0">
+            ORDER BY dao.favorite_amount desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('2') == 0">
+            ORDER BY dao_price desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('3') == 0">
+            ORDER BY dao_price ASC
+        </if>
+        ,dao.id desc
+    </select>
+
+
+    <select id="exploreSeedNodes" resultType="semios.api.model.entity.Dao"
+            parameterType="semios.api.model.vo.req.DaoSortedReqVo">
+        select dao.*,
+        case
+        when dao.canvas_floor_price is null then dao.dao_floor_price
+        when dao.canvas_floor_price is not null then dao.canvas_floor_price
+        end as dao_price
+        from dao as dao
+        where dao.is_together_dao = 1
+        <if test="daoSortedReqVo.daoIdList != null">
+            and dao.id in
+            <foreach collection="daoSortedReqVo.daoIdList" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="daoSortedReqVo.minPrice != null and daoSortedReqVo.minPrice != ''">
+            and
+            (case
+            when dao.canvas_floor_price is null then dao.dao_floor_price
+            when dao.canvas_floor_price is not null then dao.canvas_floor_price end) >= #{daoSortedReqVo.minPrice}
+        </if>
+        <if test="daoSortedReqVo.maxPrice != null and daoSortedReqVo.maxPrice != ''">
+            and
+            (case
+            when dao.canvas_floor_price is null then dao.dao_floor_price
+            when dao.canvas_floor_price is not null then dao.canvas_floor_price end) <![CDATA[<=]]>
+            #{daoSortedReqVo.maxPrice}
+        </if>
+        <if test="daoSortedReqVo.sortCondition == null or daoSortedReqVo.sortCondition == ''">
+            ORDER BY dao.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('0') == 0">
+            ORDER BY dao.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('1') == 0">
+            ORDER BY dao.favorite_amount desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('2') == 0">
+            ORDER BY dao_price desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('3') == 0">
+            ORDER BY dao_price ASC
+        </if>
+        ,dao.id desc
+    </select>
+
+
+    <select id="selectDaoByDaoNumberList" resultType="semios.api.model.entity.Dao">
+        select * from dao
+        where dao_number in
+        <foreach collection="daoNumberList" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="selectDaoByErc20TokenList" resultType="semios.api.model.entity.Dao">
+        select * from dao
+        where dao_status > 0 and is_together_dao = 0 and erc20_token in
+        <foreach collection="erc20TokenList" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+
+    <select id="daoDetailByProjectIdList" resultType="semios.api.model.entity.Dao">
+
+        select * from dao
+        where project_id in
+        <foreach collection="projectIdList" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+
+    <select id="selectDaoListByErc20Token" resultType="semios.api.model.entity.Dao">
+        select *
+        from dao
+        where
+        dao_status > 0
+        and dao_status != 3
+        and is_together_dao = 0
+        and erc20_token = #{daoSortedReqVo.erc20Token}
+        and id != #{daoSortedReqVo.daoId}
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('0') == 0">
+            ORDER BY create_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('1') == 0">
+            ORDER BY favorite_amount desc
+        </if>
+        ,`dao`.id desc
+    </select>
+</mapper>

@@ -1,0 +1,37 @@
+logging:
+    file:
+        path: .
+    level:
+        root: info
+        semios:
+            gateway:
+                  mapper: DEBUG
+
+server:
+    port: 8581
+spring:
+    profiles:
+        active: '@active@'
+    servlet:
+        multipart:
+            maxFileSize: 10MB
+    thymeleaf:
+        cache: false
+
+    cloud:
+        gateway:
+            globalcors: # 全局的跨域处理
+              add-to-simple-url-handler-mapping: true # 解决options请求被拦截问题，配置后CORS的询问请求就会正常放出
+              corsConfigurations:
+                '[/**]': # 拦截哪些请求，/**是拦截一切的请求
+                  allowedOriginPatterns: "*" # 允许哪些网站的跨域请求 allowedOrigins: “*” 允许所有网站
+                  allowedMethods: # 允许的跨域ajax的请求方式
+                    - "GET"
+                    - "POST"
+                    - "DELETE"
+                    - "PUT"
+                    - "OPTIONS"
+                  allowedHeaders: "*" # 允许在请求中携带的头信息
+                  allowCredentials: true # 是否允许携带cookie
+                  maxAge: 360000 # 这次跨域检测的有效期
+

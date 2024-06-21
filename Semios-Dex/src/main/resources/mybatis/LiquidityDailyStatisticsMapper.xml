@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="semios.dex.mapper.LiquidityDailyStatisticsMapper">
+    <select id="getErc20DailyStatistics" resultType="semios.dex.model.entity.LiquidityDailyStatistics">
+        select *
+        from liquidity_daily_statistics
+        where erc20_address = #{erc20Address}
+          and record_time &gt;= #{startDate}
+          and record_time &lt; #{endDate}
+        order by record_time
+    </select>
+</mapper>

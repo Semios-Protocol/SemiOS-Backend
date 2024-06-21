@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="semios.api.mapper.CanvasDrbStatisticsMapper">
+
+    <select id="canvasRanking" resultType="semios.api.model.entity.CanvasDrbStatistics" parameterType="com.baomidou.mybatisplus.core.metadata.IPage">
+        select drb.*,canvas.id as can_id,canvas.canvas_name,canvas.canvas_logo,canvas.dao_status,canvas.current_price
+        from canvas  as canvas
+        LEFT JOIN ( SELECT MAX( id ) AS id,canvas_id FROM canvas_drb_statistics GROUP BY canvas_id ) as cda on canvas.id = cda.canvas_id
+        LEFT JOIN canvas_drb_statistics AS drb ON cda.id = drb.id
+        where canvas.canvas_status != 0
+        order by canvas.current_price desc,canvas.id desc
+    </select>
+</mapper>

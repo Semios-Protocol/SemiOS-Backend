@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="semios.dex.mapper.LiquidityTransactionMapper">
+    <select id="getSwapVolume" resultType="BigDecimal">
+        select
+        sum(eth_amount) as eth_amount
+        from
+        liquidity_transaction
+        where
+        erc20_address = #{erc20Address}
+        and trade_type &lt;= 2
+        <if test="startDate != null and startDate != ''">
+            and block_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            and block_time &lt; #{endDate}
+        </if>
+    </select>
+
+    <select id="getBurnVolume" resultType="BigDecimal">
+        select
+        sum(out_token_amount) as burn_amount
+        from
+        liquidity_transaction
+        where
+        erc20_address = #{erc20Address}
+        and trade_type = 5
+        <if test="startDate != null and startDate != ''">
+            and block_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            and block_time &lt; #{endDate}
+        </if>
+    </select>
+
+    <select id="getSwapVolumeList" resultType="semios.dex.model.dto.response.Erc20TradeResDto">
+        select
+        erc20_address,
+        sum(eth_amount) as trading_volume
+        from
+        liquidity_transaction
+        where
+        erc20_address in
+        <foreach open="(" close=")" separator="," collection="erc20AddressList" item="erc20Address" index="index">
+            #{erc20Address}
+        </foreach>
+        and trade_type &lt;= 2
+        <if test="startDate != null and startDate != ''">
+            and block_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            and block_time &lt; #{endDate}
+        </if>
+        group by
+        erc20_address
+    </select>
+
+    <select id="getBurnVolumeList" resultType="semios.dex.model.dto.response.Erc20TradeResDto">
+        select
+        erc20_address,
+        sum(in_token_amount) as trading_volume
+        from
+        liquidity_transaction
+        where
+        erc20_address in
+        <foreach open="(" close=")" separator="," collection="erc20AddressList" item="erc20Address" index="index">
+            #{erc20Address}
+        </foreach>
+        and trade_type = 5
+        <if test="startDate != null and startDate != ''">
+            and block_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            and block_time &lt; #{endDate}
+        </if>
+        group by
+        erc20_address
+    </select>
+
+    <select id="getTradeList" resultType="semios.dex.model.entity.LiquidityTransaction">
+        select
+        *
+        from
+        liquidity_transaction
+        where
+        erc20_address = #{erc20Address}
+        and trade_type in
+        <foreach open="(" close=")" separator="," collection="tradeTypeList" item="tradeType" index="index">
+            #{tradeType}
+        </foreach>
+        <if test="startDate != null and startDate != ''">
+            and block_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            and block_time &lt; #{endDate}
+        </if>
+        order by
+        block_time desc
+    </select>
+</mapper>

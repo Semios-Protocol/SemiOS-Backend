@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="semios.api.mapper.CanvasMapper">
+
+    <select id="findFavoritesByUserAddress" resultType="semios.api.model.entity.Canvas">
+        select canvas.*
+        from favorites fav
+        left join canvas canvas
+        on fav.favorite_id = canvas.id
+        where fav.user_address = #{userAddress} and fav.`type` = 1 and canvas.canvas_status != 0
+        order by fav.create_time desc
+    </select>
+
+
+    <select id="collectionsCanvas" resultType="semios.api.model.entity.CanvasDrbStatistics">
+        select dds.*,can.id as can_id,can.canvas_id as
+        canvas_id_str,can.canvas_name,can.canvas_description,can.canvas_logo,can.canvas_number,can.dao_number,can.dao_status,can.favorite_amount,can.current_price
+        from canvas can
+        left join ( SELECT MAX( id ) AS id,canvas_id FROM canvas_drb_statistics GROUP BY canvas_id ) as dda on can.id =
+        dda.canvas_id
+        left join canvas_drb_statistics as dds on dda.id = dds.id
+        where can.canvas_status != 0
+        <if test="daoSortedReqVo.daoId != null and daoSortedReqVo.daoId != ''">
+            and can.dao_id = #{daoSortedReqVo.daoId}
+        </if>
+        <if test="daoSortedReqVo.minPrice != null and daoSortedReqVo.minPrice != ''">
+            and can.current_price >= #{daoSortedReqVo.minPrice}
+        </if>
+        <if test="daoSortedReqVo.maxPrice != null and daoSortedReqVo.maxPrice != ''">
+            and can.current_price  <![CDATA[<=]]> #{daoSortedReqVo.maxPrice}
+        </if>
+        <if test="daoSortedReqVo.sortCondition == null or daoSortedReqVo.sortCondition == ''">
+            ORDER BY can.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('0') == 0">
+            ORDER BY can.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('1') == 0">
+            ORDER BY can.favorite_amount desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('2') == 0">
+            ORDER BY can.current_price desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('3') == 0">
+            ORDER BY can.current_price ASC
+        </if>
+        ,can.id desc
+    </select>
+
+    <select id="selectCanvasDetailByCanvasIdList" resultType="semios.api.model.entity.Canvas">
+        select * from canvas
+        where canvas_id in
+        <foreach collection="canvasIdList" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="listCanvasByDaoIds" resultType="semios.api.model.entity.Canvas">
+        select * from canvas
+        where dao_id in
+        <foreach collection="daoIds" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>
