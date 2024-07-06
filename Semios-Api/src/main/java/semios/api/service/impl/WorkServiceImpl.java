@@ -11,10 +11,7 @@ import semios.api.model.bo.DaoAnalyticsBo;
 import semios.api.model.bo.WorkCountBo;
 import semios.api.model.entity.Dao;
 import semios.api.model.entity.Work;
-import semios.api.model.vo.req.CanvasSortedReqVo;
-import semios.api.model.vo.req.DaoIdParam;
-import semios.api.model.vo.req.DaoSortedReqVo;
-import semios.api.model.vo.req.WorkId;
+import semios.api.model.vo.req.*;
 import semios.api.model.vo.res.BaseWorkVo.WorkNftDetailsVo;
 import semios.api.model.vo.res.MineNftVo;
 import semios.api.service.IDaoService;
@@ -317,8 +314,8 @@ public class WorkServiceImpl extends ServiceImpl<WorkMapper, Work> implements IW
     }
 
     @Override
-    public Page<MineNftVo> workMintTopUp(IPage<Work> page, String userAddress, String projectId) {
-        return workMapper.selectWorkMintTopUp(page, userAddress, projectId);
+    public Page<MineNftVo> workMintTopUp(IPage<Work> page, String userAddress,String projectId) {
+        return workMapper.selectWorkMintTopUp(page,userAddress,projectId);
     }
 
     @Override
@@ -329,11 +326,16 @@ public class WorkServiceImpl extends ServiceImpl<WorkMapper, Work> implements IW
         }
         String existDaoId = StringUtils.isBlank(dao.getExistDaoId()) ? dao.getProjectId() : dao.getExistDaoId();
 
-        return workMapper.selectWorkMintNotTopUp(page, daoIdParam.getUserAddress(), existDaoId);
+        return workMapper.selectWorkMintNotTopUp(page,daoIdParam.getUserAddress(),existDaoId);
     }
 
     @Override
     public Page<WorkNftDetailsVo> workDetailNft(IPage<Work> page, WorkId workId) {
-        return workMapper.workDetailNft(page, workId.getWorkId());
+        return workMapper.workDetailNft(page,workId.getWorkId());
+    }
+
+    @Override
+    public Page<Work> searchWork(IPage<Work> page,String searchId){
+        return workMapper.searchWork(page,searchId);
     }
 }

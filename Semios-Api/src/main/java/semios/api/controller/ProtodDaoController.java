@@ -17,9 +17,7 @@ import semios.api.model.entity.Dao;
 import semios.api.model.enums.BasicDaoEnum;
 import semios.api.model.vo.req.DaoIdReqVo;
 import semios.api.model.vo.req.DaoSortedReqVo;
-import semios.api.model.vo.res.DaoFlowResVo;
-import semios.api.model.vo.res.DaoNameListVo;
-import semios.api.model.vo.res.TogetherDaoListVo;
+import semios.api.model.vo.res.*;
 import semios.api.service.IDaoAllocationStrategyService;
 import semios.api.service.IDaoService;
 import semios.api.service.common.CommonService;
@@ -110,6 +108,7 @@ public class ProtodDaoController {
         String projectId = StringUtils.isBlank(dao.getExistDaoId()) ? dao.getProjectId() : dao.getExistDaoId();
         IPage<Dao> daoIPage = new Page<>(daoSortedReqVo.getPageNo(), daoSortedReqVo.getPageSize());
         daoSortedReqVo.setErc20Token(dao.getErc20Token());
+        daoSortedReqVo.setProjectId(projectId);
         Page<Dao> daoPage = daoService.selectDaoListByErc20Token(daoIPage, daoSortedReqVo);
 
         List<Dao> daoList = daoPage.getRecords();

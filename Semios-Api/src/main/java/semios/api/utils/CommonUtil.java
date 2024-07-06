@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
 import semios.api.model.dto.common.ProtoDaoConstant;
+import semios.api.model.dto.response.SearchNameParamDto;
 
 import javax.xml.bind.DatatypeConverter;
 import java.math.BigDecimal;
@@ -25,7 +26,7 @@ public class CommonUtil {
     public static final Pattern pattern = Pattern.compile("[\u4E00-\u9FA5|\\！|\\，|\\。|\\（|\\）|\\《|\\》|\\“|\\”|\\？|\\：|\\；|\\【|\\】]");
 
     public static String removeHexPrefixIfExists(String hexString) {
-        if (StringUtils.isBlank(hexString)) {
+        if(StringUtils.isBlank(hexString)){
             return "";
         }
         hexString = hexString.toLowerCase();
@@ -40,7 +41,7 @@ public class CommonUtil {
     }
 
     public static String addHexPrefixIfNotExist(String hexString) {
-        if (StringUtils.isBlank(hexString)) {
+        if(StringUtils.isBlank(hexString)){
             return "";
         }
         if (hexString.startsWith("0x")) {
@@ -264,6 +265,7 @@ public class CommonUtil {
     /**
      * 计算N小时之后的区块高度
      *
+     *
      * @param days 距离23年12月11日的差多少天
      * @return
      */
@@ -307,12 +309,75 @@ public class CommonUtil {
                 new BigInteger(ProtoDaoConstant.etherscanBlockNumber).multiply(new BigInteger(String.valueOf(days)).multiply(new BigInteger(String.valueOf(24)))));
     }
 
-    public static BigDecimal getPowBigDecimal(Integer decimal) {
-        if (decimal == null) {
+    public static BigDecimal getPowBigDecimal(Integer decimal){
+        if (decimal==null){
             return new BigDecimal(ProtoDaoConstant.BASIC_RATIO);
         }
         return new BigDecimal("10").pow(decimal);
     }
+
+
+    /**
+     * 是否匹配 D4A@123
+     *
+     * @param name
+     * @return
+     */
+    public static boolean patternDao(String name) {
+        String dao = "^PDAO.T[1-9][0-9]*$";
+        Pattern pattern = Pattern.compile(dao);
+        Matcher matcher = pattern.matcher(name);
+        return matcher.matches();
+    }
+
+    /**
+     * 是否匹配 D4A@123/Canvas*234/NFT#123
+     *
+     * @param name
+     * @return
+     */
+    public static boolean patternWork(String name) {
+        String work = "^PDAO.T[1-9][0-9]*.[1-9][0-9]*$";
+        Pattern pattern = Pattern.compile(work);
+        Matcher matcher = pattern.matcher(name);
+        return matcher.matches();
+    }
+
+
+    /**
+     * 获取daoNumber canvasNumber workNumber
+     *
+     * @param name
+     * @return
+     */
+    public static SearchNameParamDto patternName(String name) {
+        SearchNameParamDto searchNameParamDto = new SearchNameParamDto();
+        if (StringUtils.isBlank(name)) {
+            return searchNameParamDto;
+        }
+        name = name.replaceAll(" ", "");
+        if (!name.startsWith("D4A@")) {
+            return searchNameParamDto;
+        }
+
+        if (patternWork(name)) {
+            searchNameParamDto.setDaoNumber(Long.valueOf(name.substring(4, name.indexOf("/Canvas*"))));
+            searchNameParamDto
+                    .setCnavasNumber(Long.valueOf(name.substring(name.indexOf("/Canvas*") + 8, name.indexOf("/NFT#"))));
+            searchNameParamDto.setWorkNumber(Long.valueOf(name.substring(name.indexOf("/NFT#") + 5)));
+            return searchNameParamDto;
+        }
+
+        if (patternDao(name)) {
+            searchNameParamDto.setDaoNumber(Long.valueOf(name.substring(4)));
+            return searchNameParamDto;
+        }
+
+        return searchNameParamDto;
+    }
+
+
+
 
     public static void main(String[] args) throws Exception {
 

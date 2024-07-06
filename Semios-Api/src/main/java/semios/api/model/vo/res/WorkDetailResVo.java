@@ -413,7 +413,7 @@ public class WorkDetailResVo {
      * 开启erc20支付：Redeem Asset Pool比例
      * 未开启erc20支付：Treasury比例
      */
-    private BigDecimal treasuryOrPoolRatio;
+     private BigDecimal treasuryOrPoolRatio;
 
 
     /**
@@ -542,8 +542,8 @@ public class WorkDetailResVo {
             if (work.getFixedPrice() != null) {
                 workDetailResVo.setFixedPrice(true);
             }
-            workDetailResVo.setPrice(ProtoDaoCommonUtil.bigdecimalToString(work.getMintedPrice()));
-            workDetailResVo.setMintedPrice(ProtoDaoCommonUtil.bigdecimalToString(work.getMintedPrice()));
+            workDetailResVo.setPrice(ProtoDaoCommonUtil.bigdecimalToString(work.getMintedPrice(),6));
+            workDetailResVo.setMintedPrice(ProtoDaoCommonUtil.bigdecimalToString(work.getMintedPrice(),6));
 
             // boolean fixedPrice = work.getFixedPrice() != null;
             boolean fixedPrice = (dao.getGlobalDaoPrice() != null && dao.getGlobalDaoPrice().compareTo(BigDecimal.ZERO) >= 0);
@@ -557,19 +557,25 @@ public class WorkDetailResVo {
             boolean fixedPrice = false;
             BigDecimal price;
             if (work.getFixedPrice() != null) {
-                workDetailResVo.setPrice(ProtoDaoCommonUtil.bigdecimalToString(work.getFixedPrice()));
+                workDetailResVo.setPrice(ProtoDaoCommonUtil.bigdecimalToString(work.getFixedPrice(),6));
                 price = work.getFixedPrice();
-                workDetailResVo.setMintedPrice(ProtoDaoCommonUtil.bigdecimalToString(work.getFixedPrice()));
+                workDetailResVo.setMintedPrice(ProtoDaoCommonUtil.bigdecimalToString(work.getFixedPrice(),6));
                 workDetailResVo.setFixedPrice(true);
                 fixedPrice = true;
             } else {
                 price = canvas.getCurrentPrice();
-                workDetailResVo.setPrice(ProtoDaoCommonUtil.bigdecimalToString(canvas.getCurrentPrice()));
-                workDetailResVo.setMintedPrice(ProtoDaoCommonUtil.bigdecimalToString(canvas.getCurrentPrice()));
+                workDetailResVo.setPrice(ProtoDaoCommonUtil.bigdecimalToString(canvas.getCurrentPrice(),6));
+                workDetailResVo.setMintedPrice(ProtoDaoCommonUtil.bigdecimalToString(canvas.getCurrentPrice(),6));
             }
-            //1。9版本新增
+            //1.9版本新增
             // 根据当前dao是否开启全局一口价来显示
+            // 如果是非一口价作品（那么node肯定没开全局一口价，且fixed_price的值是空的），此时显示的是非一口价
+            // 如果是一口价作品（那么node肯定没开全局一口价，但fixed_price不是空的）， 此时显示的是应该是一口价的
+            // 如果是全局一口价的（node开了全局一口价，global_dao_price >=0的），那么应该显示的是一口价的百分比
             fixedPrice = (dao.getGlobalDaoPrice() != null && dao.getGlobalDaoPrice().compareTo(BigDecimal.ZERO) >= 0);
+            if (!fixedPrice){
+                fixedPrice = (work.getFixedPrice() != null) ;
+            }
             DaoRoyaltyToken daoRoyaltyToken = JacksonUtil.json2pojo(dao.getRoyaltyToken(), DaoRoyaltyToken.class);
             String reserveRatio = fixedPrice ? dao.getFixedReserveRatio() : dao.getUnfixedReserveRatio();
             DaoReserveRatio daoReserveRatio = new DaoReserveRatio(fixedPrice);
@@ -669,7 +675,7 @@ public class WorkDetailResVo {
 
             }
         }
-        workDetailResVo.setCanvasCurrentPrice(ProtoDaoCommonUtil.bigdecimalToString(canvas.getCurrentPrice()));
+        workDetailResVo.setCanvasCurrentPrice(ProtoDaoCommonUtil.bigdecimalToString(canvas.getCurrentPrice(),6));
         workDetailResVo.setWorkDescription(work.getWorkDescription());
         String imageUrl = work.getImageUrl();
         workDetailResVo
@@ -688,8 +694,8 @@ public class WorkDetailResVo {
         }
         if (dao.getGlobalDaoPrice() != null && dao.getGlobalDaoPrice().compareTo(BigDecimal.ZERO) >= 0) {
             if (!WorkStatusEnum.CASTED.getStatus().equals(work.getWorkStatus())) {
-                workDetailResVo.setPrice(ProtoDaoCommonUtil.bigdecimalToString(dao.getGlobalDaoPrice()));
-                workDetailResVo.setMintedPrice(ProtoDaoCommonUtil.bigdecimalToString(dao.getGlobalDaoPrice()));
+                workDetailResVo.setPrice(ProtoDaoCommonUtil.bigdecimalToString(dao.getGlobalDaoPrice(),6));
+                workDetailResVo.setMintedPrice(ProtoDaoCommonUtil.bigdecimalToString(dao.getGlobalDaoPrice(),6));
             }
             workDetailResVo.setUnifiedPriceSet(true);
         }
@@ -702,11 +708,11 @@ public class WorkDetailResVo {
         workDetailResVo.setErc20PaymentMode(TrueOrFalseEnum.TRUE.getStatus().equals(dao.getErc20PaymentMode()));
 
 
-        if (workDetailResVo.getUnifiedPriceSet()) {
+        if (workDetailResVo.getUnifiedPriceSet()){
             workDetailResVo.setPriceType(WorkPriceTypeEnum.DAO_GLOBAL_PRICE.getType());  // 全局一口价类型
         } else if (workDetailResVo.getFixedPrice()) {
             workDetailResVo.setPriceType(WorkPriceTypeEnum.FIXED_PRICE.getType());  // Work一口价类型
-        } else {
+        }else {
             workDetailResVo.setPriceType(WorkPriceTypeEnum.CANVAS_PRICE.getType());  // 浮动价格类型
         }
 

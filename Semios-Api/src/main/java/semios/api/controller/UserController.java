@@ -89,42 +89,6 @@ public class UserController {
     @Autowired
     private ICollectRecordService collectRecordService;
 
-    // -------------  private ------------------
-    private static Long computedEndBlockTime(Dao dao, BigDecimal blockNumber) {
-        if (dao == null) {
-            return null;
-        }
-        BigDecimal denominator = new BigDecimal(dao.getDuration()).divide(new BigDecimal("1e18"));  // 分母=每周期出块数量
-        log.info("分母=每周期出块数量:" + denominator);
-        log.info("当前区块数:" + blockNumber);
-        BigDecimal startBlockNumber = new BigDecimal(dao.getDaoStartBlock()); // 开始区块
-        log.info("开始区块:" + startBlockNumber);
-        BigDecimal currentRound = new BigDecimal(Integer.parseInt(dao.getCurrentRound()) - 1);   // 已经完成周期数
-        log.info("当前周期数:" + currentRound);
-        BigDecimal numThisCurrentRound = blockNumber.subtract(startBlockNumber).subtract(currentRound.multiply(denominator));
-
-        if (dao.getDaoRestartBlock() != null) {
-            log.info("重新开始的区块高度为:" + dao.getDaoRestartBlock());
-            BigDecimal restartBlock = new BigDecimal(dao.getDaoRestartBlock());
-            BigDecimal roundSub = restartBlock.subtract(startBlockNumber);
-            log.info("重新开始的时间-开始的时间的差值:" + roundSub);
-            BigDecimal[] resultDiv = roundSub.divideAndRemainder(denominator);
-            log.info("时间差对每个周期的区块数相除的值:" + JacksonUtil.obj2json(resultDiv));
-            BigDecimal blockRemainder = resultDiv[1];
-            numThisCurrentRound = numThisCurrentRound.subtract(blockRemainder);
-        }
-        log.info("当前周期内已经出了多少块:" + numThisCurrentRound);
-
-        BigDecimal numerator = denominator.subtract(numThisCurrentRound);
-        log.info("分子：还有多少块到下个周期:" + numerator);
-        // 如果小于0，返回0
-        if (numerator.compareTo(BigDecimal.ZERO) < 0) {
-            // 代表即将结束
-            return 0L;
-        }
-        return numerator.multiply(new BigDecimal(ProtoDaoConstant.BLOCK_SECONDS)).multiply(new BigDecimal("1000")).longValue();
-    }
-
     /**
      * 用户登陆接口 返回data信息为true代表已签署隐私协议，为false代表未签署隐私协议
      */
@@ -445,13 +409,13 @@ public class UserController {
             String checkString = CommonUtil.nameCheck(userProfileVo.getUserName());
             if (StringUtils.isNotBlank(checkString)) {
                 result.setResultDesc(checkString);
-                result.setResultCode(ResultDesc.ERROR.getResultCode());
+                result.setResultCode(ResultDesc.PARAM_ERROR.getResultCode());
                 return result;
             }
             User user = userService.findUserByName(userProfileVo.getUserName());
             if (user != null && !user.getUserAddress().equals(userProfileVo.getUserAddress())) {
                 result.setResultDesc("Invalid name . The name is already taken.");
-                result.setResultCode(ResultDesc.ERROR.getResultCode());
+                result.setResultCode(ResultDesc.PARAM_ERROR.getResultCode());
                 return result;
             }
 
@@ -473,7 +437,7 @@ public class UserController {
         User user = userService.findUserByAddressHash(userProfileVo.getUserAddress());
         if (user == null) {
             result.setResultDesc("用户不存在！");
-            result.setResultCode(ResultDesc.ERROR.getResultCode());
+            result.setResultCode(ResultDesc.AUTH_ERROR.getResultCode());
             return result;
         }
 
@@ -718,9 +682,9 @@ public class UserController {
 
             }
 
-            String audience = StringUtils.isBlank(user.getUserName()) ? "semios" : user.getUserName();
+            String audience = StringUtils.isBlank(user.getUserName()) ? "yeez" : user.getUserName();
             String subject = String.format("{\"userhash\": \"%s\"}", user.getUserAddress());
-            String token = JjwtUtil.createJWT("semios", audience, subject);
+            String token = JjwtUtil.createJWT("yeez", audience, subject);
 
             Cookie tokenCookie = new Cookie(ProtoDaoConstant.COOKIE_TOKEN, token);
             tokenCookie.setMaxAge(60 * 60 * 24);
@@ -972,6 +936,11 @@ public class UserController {
     public Result<UserWalletReceivedIncomeVo>
     userIncomeForWalletReceived(@RequestBody(required = false) UserProfileReqVo userProfileReqVo) {
         Result<UserWalletReceivedIncomeVo> result = new Result<>();
+        // 此接口功能上已经不用，返回空
+        if (StringUtils.isNotBlank(userProfileReqVo.getUserAddress())){
+            result.setData(new UserWalletReceivedIncomeVo());
+            return result;
+        }
 
         List<Dao> daoList = daoService.myDaoListAll(userProfileReqVo.getUserAddress());
         List<Canvas> canvasList = canvasService.myCanvasForAll(userProfileReqVo.getUserAddress());
@@ -1165,6 +1134,7 @@ public class UserController {
         return result;
     }
 
+
     /**
      * 1.8 钱包中以dao为维度返回的topup余额信息(修改接口)
      */
@@ -1184,11 +1154,11 @@ public class UserController {
         }
 
         List<WorkTopupDaoBalanceVo> workTopupHarvests = workTopupHarvestService.selectTopUpBalanceByAddress(userAddress);
-        if (workTopupHarvests.isEmpty()) {
+        if (workTopupHarvests.isEmpty()){
             return result;
         }
 
-        for (WorkTopupDaoBalanceVo workTopupHarvest : workTopupHarvests) {
+        for (WorkTopupDaoBalanceVo workTopupHarvest:workTopupHarvests){
             Dao dao = daoService.getById(workTopupHarvest.getDaoId());
             if (dao == null) {
                 continue;
@@ -1218,16 +1188,16 @@ public class UserController {
         return result;
     }
 
+
     /**
      * 1.5 返回dao下用户持有的nft资产详情列表
-     *
      * @return WorkLockDuration
      * @apiNote 用户在top-up balance页面点击see more后调用，传入当前的dao id
      */
     @PostMapping(value = "/topup/balance/details")
     public ResultList<UserTopupBalanceDetailsVo> topupBalanceMore(@RequestBody DaoIdReqVo daoIdReqVo, HttpServletRequest request) {
         ResultList<UserTopupBalanceDetailsVo> result = new ResultList<>();
-        if (StringUtils.isBlank(daoIdReqVo.getDaoId())) {
+        if (StringUtils.isBlank(daoIdReqVo.getDaoId())){
             result.setResultDesc("dao id is null.");
             result.setResultCode(ResultDesc.PARAM_ERROR.getResultCode());
             return result;
@@ -1247,7 +1217,7 @@ public class UserController {
             return result;
         }
 
-        List<UserTopupBalanceDetailsVo> userTopupBalanceDetailsVos = workTopupHarvestService.selectTopUpSeeMore(userAddress, daoIdReqVo.getDaoId());
+        List<UserTopupBalanceDetailsVo> userTopupBalanceDetailsVos = workTopupHarvestService.selectTopUpSeeMore(userAddress,daoIdReqVo.getDaoId());
 
         userTopupBalanceDetailsVos.forEach(vo -> {
             vo.setPayCurrencyType(dao.getPayCurrencyType());
@@ -1257,9 +1227,11 @@ public class UserController {
         });
 
 
+
         result.setDataList(userTopupBalanceDetailsVos);
         return result;
     }
+
 
     /**
      * 1.8 钱包中以dao为维度返回的topup pending信息
@@ -1276,7 +1248,7 @@ public class UserController {
             return result;
         }
         List<DaoProjectVo> workTopupDaoBalanceVos = workTopupHarvestService.selectPendingBalanceByAddress(userAddress);
-        if (workTopupDaoBalanceVos.isEmpty()) {
+        if (workTopupDaoBalanceVos.isEmpty()){
             result.setDataList(new ArrayList<>());
             return result;
         }
@@ -1292,7 +1264,7 @@ public class UserController {
 //        BigDecimal blockNumber =  new BigDecimal(CommonUtil.hexToTenString(resultBlockNum.getData())); // 当前区块数
 
         List<UserTopupBalancePendingVo> userTopupBalancePendingVos = new ArrayList<>();
-        for (DaoProjectVo daoProjectVo : workTopupDaoBalanceVos) {
+        for (DaoProjectVo daoProjectVo:workTopupDaoBalanceVos){
             UserTopupBalancePendingVo userTopupBalancePendingVo = UserTopupBalancePendingVo.transfer(daoProjectVo);
             userTopupBalancePendingVos.add(userTopupBalancePendingVo);
         }
@@ -1300,6 +1272,7 @@ public class UserController {
 
         return result;
     }
+
 
     /**
      * 1.8 钱包中以dao为维度返回的topup pending信息 detail信息
@@ -1324,19 +1297,21 @@ public class UserController {
             return result;
         }
 
-        BigDecimal blockNumber = new BigDecimal(CommonUtil.hexToTenString(resultBlockNum.getData())); // 当前区块数
+        BigDecimal blockNumber =  new BigDecimal(CommonUtil.hexToTenString(resultBlockNum.getData())); // 当前区块数
 
         List<UserTopupBalancePendingDetailVo> userTopupBalancePendingDetailVos = workTopupHarvestService.selectTopUpPendingSeeMore(userAddress, CommonUtil.removeHexPrefixIfExists(daoProjectVo.getProjectId()));
-        for (UserTopupBalancePendingDetailVo userTopupBalancePendingDetailVo : userTopupBalancePendingDetailVos) {
+        for (UserTopupBalancePendingDetailVo userTopupBalancePendingDetailVo : userTopupBalancePendingDetailVos){
             userTopupBalancePendingDetailVo.setOperationTime(userTopupBalancePendingDetailVo.getCreateTimestamp().getTime());
 
             // minted dao 可能是sub dao
             Dao mintDao = daoService.getById(userTopupBalancePendingDetailVo.getMintedDaoId());
-            userTopupBalancePendingDetailVo.setEndBlockTime(computedEndBlockTime(mintDao, blockNumber));
+            userTopupBalancePendingDetailVo.setEndBlockTime(computedEndBlockTime(mintDao,blockNumber));
         }
         result.setDataList(userTopupBalancePendingDetailVos);
         return result;
     }
+
+
 
     /**
      * 1.8 返回topup balance reward信息
@@ -1347,13 +1322,13 @@ public class UserController {
         // 获取当前登陆用户下可以领取的钱和未领取的钱有不为0的seed nodes list
         ResultList<UserTopupRewardVo> result = new ResultList<>();
 
-        log.info("[topupBalanceReward] userAddress:{}", userProfileReqVo.getUserAddress());
+        log.info("[topupBalanceReward] userAddress:{}",userProfileReqVo.getUserAddress());
         List<UserTopupRewardVo> userTopupRewardVos = nftRewardAllocationService.selectUserTopupRewardVo(userProfileReqVo.getUserAddress());
-        if (userTopupRewardVos.isEmpty()) {
+        if (userTopupRewardVos.isEmpty()){
             result.setDataList(new ArrayList<>());
             return result;
         }
-        for (UserTopupRewardVo userTopupRewardVo : userTopupRewardVos) {
+        for (UserTopupRewardVo userTopupRewardVo : userTopupRewardVos){
             userTopupRewardVo.setProjectId(CommonUtil.addHexPrefixIfNotExist(userTopupRewardVo.getProjectId()));
         }
 
@@ -1362,6 +1337,7 @@ public class UserController {
         result.setDataList(userTopupRewardVos);
         return result;
     }
+
 
     /**
      * 1.8 返回topup balance reward信息
@@ -1373,15 +1349,15 @@ public class UserController {
         // 获取指定seed nodes下所有plan的明细
         ResultList<UserTopupRewardDetailVo> result = new ResultList<>();
 
-        List<UserTopupRewardDetailVo> rewardDetailList = nftRewardAllocationService.selectUserTopupRewardDetailVo(CommonUtil.removeHexPrefixIfExists(daoProjectVo.getProjectId()), daoProjectVo.getUserAddress());
-        if (rewardDetailList.isEmpty()) {
+        List<UserTopupRewardDetailVo> rewardDetailList = nftRewardAllocationService.selectUserTopupRewardDetailVo(CommonUtil.removeHexPrefixIfExists(daoProjectVo.getProjectId()),daoProjectVo.getUserAddress());
+        if (rewardDetailList.isEmpty()){
             result.setDataList(new ArrayList<>());
             return result;
         }
 
-        for (UserTopupRewardDetailVo userTopupRewardDetailVo : rewardDetailList) {
-            BigDecimal collectableAmount = collectRecordService.getPlanTotalCollectedByDaoId(daoProjectVo.getUserAddress(), userTopupRewardDetailVo.getPlanCode());
-            userTopupRewardDetailVo.setCollectedAmount(collectableAmount != null ? collectableAmount : BigDecimal.ZERO);
+        for (UserTopupRewardDetailVo userTopupRewardDetailVo : rewardDetailList){
+            BigDecimal collectableAmount =  collectRecordService.getPlanTotalCollectedByDaoId(daoProjectVo.getUserAddress(),userTopupRewardDetailVo.getPlanCode());
+            userTopupRewardDetailVo.setCollectedAmount(collectableAmount!=null?collectableAmount:BigDecimal.ZERO);
         }
 
         result.setDataList(rewardDetailList);
@@ -1396,9 +1372,46 @@ public class UserController {
 
         // 需要查询当前登陆账户的
         ResultList<TopupNftListVo> result = new ResultList<>();
-        List<TopupNftListVo> topupNftListVos = workTopupHarvestService.getTopupNftListVoByProjectAndAddress(CommonUtil.removeHexPrefixIfExists(daoProjectVo.getProjectId()), daoProjectVo.getUserAddress());
+        List<TopupNftListVo> topupNftListVos = workTopupHarvestService.getTopupNftListVoByProjectAndAddress(CommonUtil.removeHexPrefixIfExists(daoProjectVo.getProjectId()),daoProjectVo.getUserAddress());
         result.setDataList(topupNftListVos);
         return result;
+    }
+
+
+    // -------------  private ------------------
+    private static Long computedEndBlockTime(Dao dao,BigDecimal blockNumber){
+        if (dao==null){
+            return null;
+        }
+        BigDecimal denominator = new BigDecimal(dao.getDuration()).divide(new BigDecimal("1e18"));  // 分母=每周期出块数量
+        log.info("分母=每周期出块数量:"+denominator);
+        log.info("当前区块数:"+blockNumber);
+        BigDecimal startBlockNumber = new BigDecimal(dao.getDaoStartBlock()); // 开始区块
+        log.info("开始区块:"+startBlockNumber);
+        BigDecimal currentRound = new BigDecimal(Integer.parseInt(dao.getCurrentRound())-1);   // 已经完成周期数
+        log.info("当前周期数:"+currentRound);
+        BigDecimal numThisCurrentRound = blockNumber.subtract(startBlockNumber).subtract(currentRound.multiply(denominator));
+
+        if (dao.getDaoRestartBlock()!=null){
+            log.info("重新开始的区块高度为:"+dao.getDaoRestartBlock());
+            BigDecimal restartBlock = new BigDecimal(dao.getDaoRestartBlock());
+            BigDecimal roundSub = restartBlock.subtract(startBlockNumber);
+            log.info("重新开始的时间-开始的时间的差值:"+roundSub);
+            BigDecimal[] resultDiv = roundSub.divideAndRemainder(denominator);
+            log.info("时间差对每个周期的区块数相除的值:"+ JacksonUtil.obj2json(resultDiv));
+            BigDecimal blockRemainder = resultDiv[1];
+            numThisCurrentRound = numThisCurrentRound.subtract(blockRemainder);
+        }
+        log.info("当前周期内已经出了多少块:"+numThisCurrentRound);
+
+        BigDecimal numerator = denominator.subtract(numThisCurrentRound);
+        log.info("分子：还有多少块到下个周期:"+numerator);
+        // 如果小于0，返回0
+        if (numerator.compareTo(BigDecimal.ZERO)<0){
+            // 代表即将结束
+            return 0L;
+        }
+        return numerator.multiply(new BigDecimal(ProtoDaoConstant.BLOCK_SECONDS)).multiply(new BigDecimal("1000")).longValue();
     }
 
 }

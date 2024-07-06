@@ -6,10 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import semios.api.model.bo.DaoAnalyticsBo;
 import semios.api.model.bo.WorkCountBo;
 import semios.api.model.entity.Work;
-import semios.api.model.vo.req.CanvasSortedReqVo;
-import semios.api.model.vo.req.DaoIdParam;
-import semios.api.model.vo.req.DaoSortedReqVo;
-import semios.api.model.vo.req.WorkId;
+import semios.api.model.vo.req.*;
 import semios.api.model.vo.res.BaseWorkVo.WorkNftDetailsVo;
 import semios.api.model.vo.res.MineNftVo;
 
@@ -131,9 +128,11 @@ public interface IWorkService extends IService<Work> {
 
     List<Work> selectWorksIsLockStatus(String blockNumber);
 
-    Page<MineNftVo> workMintTopUp(IPage<Work> page, String userAddress, String projectId);
+    Page<MineNftVo> workMintTopUp(IPage<Work> page, String userAddress,String projectId);
 
     Page<MineNftVo> workMintNotTopUp(IPage<Work> page, DaoIdParam daoIdParam);
 
     Page<WorkNftDetailsVo> workDetailNft(IPage<Work> page, WorkId workId);
+
+    Page<Work> searchWork(IPage<Work> page,String searchId);
 }

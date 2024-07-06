@@ -154,6 +154,7 @@
         and is_together_dao = 0
         and erc20_token = #{daoSortedReqVo.erc20Token}
         and id != #{daoSortedReqVo.daoId}
+        and (project_id = #{daoSortedReqVo.projectId} or exist_dao_id = #{daoSortedReqVo.projectId})
         <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition.compareTo('0') == 0">
             ORDER BY create_time desc
         </if>
@@ -162,4 +163,18 @@
         </if>
         ,`dao`.id desc
     </select>
+
+    <select id="selectCollectionDao" resultType="semios.api.model.entity.Dao" parameterType="semios.api.model.vo.req.DaoSortedReqVo">
+        select *
+        from dao
+        where dao.dao_status > 0 and dao.dao_status != 3 and dao.is_together_dao = 0
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('0') == 0">
+            ORDER BY dao.block_time desc
+        </if>
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('1') == 0">
+            ORDER BY dao.favorite_amount desc
+        </if>
+        ,`dao`.id desc
+    </select>
+
 </mapper>

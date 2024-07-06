@@ -101,7 +101,8 @@ public class WebConfigurer implements WebMvcConfigurer {
                 "/user/cookie/info", "/dao/paused", "/dao/canvas", "/contract/abi", "/dao/new/available", "/user/logout",
                 "/dao/user/authority", "/dao/analytics/**", "/dex/dao_erc20", "/dex/user", "/common/drb/info",
                 "/dao/list/protodao", "/dao/protodao/member", "/dao/createWork/info", "/dao/transaction/hash", "/dao/protodao/authority",
-                "/protodao/related", "/dao/times", "/dao/maincreator", "/dao/allcation/list", "/dao/allocation", "/event/**", "/sync/**", "/work/detail/nft", "/plan/together/tap", "/plan/together/list", "/plan/basic/info");
+                "/protodao/related", "/dao/times", "/dao/maincreator", "/dao/allcation/list", "/dao/allocation","/event/**","/sync/**","/work/detail/nft","/plan/together/tap",
+                "/plan/together/list","/plan/basic/info","/dao/show/**","/work/show/**");
         registry.addInterceptor(jwtInterceptor).addPathPatterns("/dao/edit", "/canvas/edit", "/favorite/actions",
                 "/favorite/cancel", "/user/profile/save", "/work/edit");
     }
