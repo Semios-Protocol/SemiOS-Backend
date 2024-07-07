@@ -73,13 +73,33 @@ public class DaoBurnAssetsPoolController extends BaseController {
         }
         String erc20Address = formatAddress(erc20ReqVo.getErc20Address());
 
-        LiquidityPriceRecord priceRecord = liquidityPriceRecordService.getLatestAssetPoolPrice(erc20Address);
+        List<String> erc20AddressList = new ArrayList<String>();
+        erc20AddressList.add(erc20Address);
+        ResultList<DaoErc20Dto> daoErc20Result = protoDaoService.getDaoErcInfo(erc20AddressList);
+        log.info("ProtoDao接口调用-获取dao信息-返回结果daoErc20Result：{}", JacksonUtil.obj2json(daoErc20Result));
+        if (ResultDesc.SUCCESS.getResultCode() != daoErc20Result.getResultCode()) {
+            throw new Exception("error get dao info from dao4art");
+        }
+        DaoErc20Dto daoErc20Dto = null;
+        if (!daoErc20Result.getDataList().isEmpty()){
+            daoErc20Dto = daoErc20Result.getDataList().get(0);
+        }
+
 
         AssetPoolPriceResVo assetPoolPriceResVo = new AssetPoolPriceResVo();
         assetPoolPriceResVo.setErc20Address(erc20Address);
-        if (priceRecord != null && priceRecord.getPrice() != null) {
-            assetPoolPriceResVo.setAssetPoolPrice(priceRecord.getPrice().stripTrailingZeros().toPlainString());
+
+
+        if (daoErc20Dto !=null && "ETH".equals(daoErc20Dto.getPayCurrencyType())){
+            LiquidityPriceRecord priceRecord = liquidityPriceRecordService.getLatestAssetPoolPrice(erc20Address);
+
+            if (priceRecord != null && priceRecord.getPrice() != null) {
+                assetPoolPriceResVo.setAssetPoolPrice(priceRecord.getPrice().stripTrailingZeros().toPlainString());
+            }
+        }else {
+            assetPoolPriceResVo.setAssetPoolPrice("0");
         }
+
         result.setData(assetPoolPriceResVo);
 
         return result;

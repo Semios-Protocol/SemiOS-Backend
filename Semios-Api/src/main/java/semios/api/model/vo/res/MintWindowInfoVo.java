@@ -44,4 +44,9 @@ public class MintWindowInfoVo {
      * 1.4 这个DRB铸造会用于内部奖励的资产 eth
      */
     private String internalRewardEth = "0";
+
+    /**
+     * 1.4 是否开启erc20支付
+     */
+    private Boolean daoToken = false;
 }

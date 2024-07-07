@@ -73,6 +73,21 @@ public class DaoErc20Dto {
     private String feePool;
 
     /**
+     * 1.7 支付货币类型
+     */
+    private String payCurrencyType;
+
+    /**
+     * 1.7 input token的address
+     */
+    private String inputTokenAddress;
+
+    /**
+     * 1.7 input token的decimals
+     */
+    private Integer inputTokenDecimals;
+
+    /**
      * 已发放量减Burn的数量
      */
     public BigDecimal getCirculatingSupply() {

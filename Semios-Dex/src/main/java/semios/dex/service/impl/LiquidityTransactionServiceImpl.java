@@ -64,12 +64,8 @@ public class LiquidityTransactionServiceImpl extends ServiceImpl<LiquidityTransa
     public IPage<LiquidityTransaction> getTradeList(TransactionReqVo transactionReqVo) {
         long pageNo = transactionReqVo.getPageNo();
         long pageSize = transactionReqVo.getPageSize();
-        Page<LiquidityTransaction> page;
-        if (pageNo > 1) {
-            page = new Page<>(pageNo, pageSize, false);
-        } else {
-            page = new Page<>(pageNo, pageSize);
-        }
+        Page<LiquidityTransaction> page = new Page<>(pageNo, pageSize);
+
         return liquidityTransactionMapper.getTradeList(page, transactionReqVo.getErc20Address(),
                 transactionReqVo.getTradeType(), transactionReqVo.getStartDate(), transactionReqVo.getEndDate());
     }
