@@ -216,7 +216,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.14.3</version> <!-- 替换为你需要的 Jsoup 版本 -->
+            <version>1.15.3</version> <!-- 替换为你需要的 Jsoup 版本 -->
         </dependency>
 
     </dependencies>
