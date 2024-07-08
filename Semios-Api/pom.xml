@@ -156,7 +156,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>23.0</version>
+            <version>32.0.0-android</version>
         </dependency>
 
         <!-- Base64加密包，如果加入Tomcat运行环境就可以不用导入 -->
