@@ -28,7 +28,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
-      run: mvn -B package --file Semios-Api/pom.xml && mvn -B package --file ../Semios-Dex/pom.xml && mvn -B package --file  Semios-Gateway/pom.xml && mvn -B package --file  Semios-Subscription/pom.xml
+      run: mvn -B package --file Semios-Api/pom.xml && mvn -B package --file Semios-Dex/pom.xml && mvn -B package --file  Semios-Gateway/pom.xml && mvn -B package --file  Semios-Subscription/pom.xml
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     - name: Update dependency graph
