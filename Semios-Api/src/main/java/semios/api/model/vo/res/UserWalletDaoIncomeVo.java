@@ -327,7 +327,8 @@ public class UserWalletDaoIncomeVo {
                                         .multiply(daoIncomeVo.getErc20CollectableEth()).stripTrailingZeros());
                     }
 
-                    if (daoIncomeVo.getErc20Collectable().compareTo(BigDecimal.ZERO) > 0) {
+                    // 加入 eth collectable 判断..
+                    if (daoIncomeVo.getErc20Collectable().compareTo(BigDecimal.ZERO) > 0 || new BigDecimal(daoIncomeVo.getEthCollectable()).compareTo(BigDecimal.ZERO) > 0) {
                         if (!canvas.getIsMinter()) {
                             daoIncomeVo.getCanvasIds().add(CommonUtil.addHexPrefixIfNotExist(canvas.getCanvasId()));
                         } else {

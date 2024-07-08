@@ -73,12 +73,18 @@ public class ProtoDaoCommonUtil {
         return bigDecimal.setScale(4, RoundingMode.UP).stripTrailingZeros().toPlainString();
     }
 
+    public static String bigdecimalToString(BigDecimal bigDecimal, int scale) {
+        if (bigDecimal == null) {
+            return "0";
+        }
+        return bigDecimal.setScale(scale, RoundingMode.UP).stripTrailingZeros().toPlainString();
+    }
+
     public static Integer stringToInteger(String str) {
         if (StringUtils.isBlank(str)) {
             return 0;
         }
         try {
-
             return Integer.valueOf(str);
         } catch (Exception e) {
             log.info("[ProtoDaoCommonUtil]stringToInteger str:{} e:{}", str, e);

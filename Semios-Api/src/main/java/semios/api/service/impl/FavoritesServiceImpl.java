@@ -8,15 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import semios.api.mapper.FavoritesMapper;
-import semios.api.model.entity.Canvas;
-import semios.api.model.entity.Dao;
-import semios.api.model.entity.Favorites;
-import semios.api.model.entity.Work;
+import semios.api.model.entity.*;
 import semios.api.model.enums.FavoriteTypeEnum;
-import semios.api.service.ICanvasService;
-import semios.api.service.IDaoService;
-import semios.api.service.IFavoritesService;
-import semios.api.service.IWorkService;
+import semios.api.service.*;
 import semios.api.utils.JacksonUtil;
 
 import java.util.List;
@@ -27,7 +21,7 @@ import java.util.List;
  * </p>
  *
  * @author xiangbin
- * @since
+ * @since 
  */
 @Slf4j
 @Service
@@ -47,45 +41,45 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
 
 
     @Override
-    public Page<Favorites> findFavoritesById(IPage<Favorites> page, String favoriteId, Integer type) {
-        return favoritesMapper.findFavoritesById(page, favoriteId, type);
+    public Page<Favorites> findFavoritesById(IPage<Favorites> page, String favoriteId,Integer type) {
+        return favoritesMapper.findFavoritesById(page, favoriteId,type);
     }
 
 
     @Override
     @Transactional
     public boolean saveFavoriteByType(Favorites favorites) {
-        if (FavoriteTypeEnum.DAO_FAVORITE.getType().equals(favorites.getType())) {
+        if(FavoriteTypeEnum.DAO_FAVORITE.getType().equals(favorites.getType())){
             Dao dao = daoService.getById(favorites.getFavoriteId());
-            if (dao == null) {
+            if(dao == null){
                 throw new RuntimeException("dao not exist");
             }
             Integer favoriteAmount = dao.getFavoriteAmount();
-            if (favoriteAmount == null) {
+            if(favoriteAmount == null){
                 favoriteAmount = 0;
             }
             dao.setFavoriteAmount(favoriteAmount + 1);
             daoService.updateById(dao);
-        } else if (FavoriteTypeEnum.CANVAS_FAVORITE.getType().equals(favorites.getType())) {
+        } else if (FavoriteTypeEnum.CANVAS_FAVORITE.getType().equals(favorites.getType())){
             Canvas canvas = canvasService.getById(favorites.getFavoriteId());
             if (canvas == null) {
                 throw new RuntimeException("canvas not exist");
             }
             Integer favoriteAmount = canvas.getFavoriteAmount();
-            if (favoriteAmount == null) {
+            if(favoriteAmount == null){
                 favoriteAmount = 0;
             }
             canvas.setFavoriteAmount(favoriteAmount + 1);
             canvasService.updateById(canvas);
 
-        } else if (FavoriteTypeEnum.WORK_FAVORITE.getType().equals(favorites.getType())) {
+        } else if (FavoriteTypeEnum.WORK_FAVORITE.getType().equals(favorites.getType())){
 
             Work work = workService.selectWorkById(favorites.getFavoriteId());
-            if (work == null) {
+            if(work == null){
                 throw new RuntimeException("work not exists");
             }
             Integer favoriteAmount = work.getFavoriteAmount();
-            if (favoriteAmount == null) {
+            if(favoriteAmount == null){
                 favoriteAmount = 0;
             }
             work.setFavoriteAmount(favoriteAmount + 1);
@@ -107,42 +101,47 @@ public class FavoritesServiceImpl extends ServiceImpl<FavoritesMapper, Favorites
     }
 
     @Override
+    public List<Integer> findIdListByUserAddress(Integer type, String userAddress) {
+        return favoritesMapper.findIdListByUserAddress(type, userAddress);
+    }
+
+    @Override
     @Transactional
     public boolean removeFavoriteByType(Favorites favorites) {
         Favorites favorites1 = favoritesMapper.findByUserAddress(favorites.getType(), favorites.getFavoriteId(), favorites.getUserAddress().toLowerCase());
-        if (favorites1 == null) {
+        if(favorites1 == null){
             log.info("[removeFavoriteByType] is null favorites:{}", JacksonUtil.obj2json(favorites));
             return true;
         }
         favoritesMapper.deleteById(favorites1.getId());
-        if (FavoriteTypeEnum.DAO_FAVORITE.getType().equals(favorites.getType())) {
+        if(FavoriteTypeEnum.DAO_FAVORITE.getType().equals(favorites.getType())){
             Dao dao = daoService.getById(favorites.getFavoriteId());
-            if (dao == null) {
+            if(dao == null){
                 throw new RuntimeException("dao not exist");
             }
             dao.setFavoriteAmount(dao.getFavoriteAmount() - 1);
-            if (dao.getFavoriteAmount() >= 0) {
+            if(dao.getFavoriteAmount() >= 0){
                 daoService.updateById(dao);
             }
-        } else if (FavoriteTypeEnum.CANVAS_FAVORITE.getType().equals(favorites.getType())) {
+        } else if (FavoriteTypeEnum.CANVAS_FAVORITE.getType().equals(favorites.getType())){
             Canvas canvas = canvasService.getById(favorites.getFavoriteId());
             if (canvas == null) {
                 throw new RuntimeException("canvas not exist");
             }
             canvas.setFavoriteAmount(canvas.getFavoriteAmount() - 1);
-            if (canvas.getFavoriteAmount() >= 0) {
+            if(canvas.getFavoriteAmount() >= 0){
                 canvasService.updateById(canvas);
             }
 
-        } else if (FavoriteTypeEnum.WORK_FAVORITE.getType().equals(favorites.getType())) {
+        } else if (FavoriteTypeEnum.WORK_FAVORITE.getType().equals(favorites.getType())){
 
             Work work = workService.selectWorkById(favorites.getFavoriteId());
-            if (work == null) {
+            if(work == null){
                 throw new RuntimeException("work not exists");
             }
             Integer favoriteAmount = work.getFavoriteAmount();
             work.setFavoriteAmount(favoriteAmount - 1);
-            if (work.getFavoriteAmount() >= 0) {
+            if(work.getFavoriteAmount() >= 0) {
                 workService.updateById(work);
             }
         }

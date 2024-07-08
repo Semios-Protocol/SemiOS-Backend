@@ -168,8 +168,27 @@ public interface DaoMapper extends BaseMapper<Dao> {
     List<Dao> listAll();
 
     @Select("select * from dao where project_id = #{projectId} AND is_together_dao=#{isTogetherDao} limit 1")
-    Dao getDaoByProjectId(String projectId, Integer isTogetherDao);
+    Dao getDaoByProjectId(String projectId,Integer isTogetherDao);
 
     @Select("select * from dao where id = (select together_dao_id from dao where project_id = #{projectId} AND is_together_dao=0 limit 1)")
     Dao getTogetherDaoBySubDaoProjectId(String projectId);
+
+
+    Page<Dao> selectCollectionDao(IPage<Dao> page, DaoSortedReqVo daoSortedReqVo);
+
+
+    @Select("select * from dao where together_dao_id = #{togetherDaoId} and is_together_dao = 0 and dao_status = 2 order by block_time desc, id desc ")
+    Page<Dao> getDaoListByTogetherDaoId(IPage<Dao> page, String togetherDaoId);
+
+    @Select("select dao.*,dds.canvas,dds.works,dds.floor_price, \n" + "                case \n"
+            + "                when dao.dao_name like concat('%', #{searchId}, '%') then 3 \n"
+            + "                when dao.dao_manitesto like concat('%', #{searchId}, '%') then 2 \n"
+            + "                when dao.dao_description like concat('%', #{searchId}, '%') then 1 \n"
+            + "                when dao.owner_address like concat('%', #{searchId}, '%') then 4 \n"
+            + "                end as ord \n" + "                from dao as dao \n"
+            + "                left join ( SELECT MAX( id ) AS id,dao_id FROM dao_drb_statistics GROUP BY dao_id ) as dda on dao.id = dda.dao_id \n"
+            + "                left join dao_drb_statistics as dds on dda.id = dds.id  \n"
+            + "                where dao.dao_status > 0  and dao.dao_status != 3 and dao.is_together_dao = 0 and (dao.dao_name like concat('%', #{searchId}, '%') or dao.dao_manitesto like concat('%', #{searchId}, '%') or dao.dao_description like concat('%', #{searchId}, '%') or owner_address like concat('%', #{searchId}, '%'))\n"
+            + "                order by ord desc,dao.block_time desc ")
+    Page<Dao> searchDao(IPage<Dao> page,String searchId);
 }

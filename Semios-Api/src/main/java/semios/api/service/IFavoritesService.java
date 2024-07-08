@@ -27,4 +27,6 @@ public interface IFavoritesService extends IService<Favorites> {
     Favorites findByUserAddress(Integer type, String favoriteId, String userAddress);
 
     List<Favorites> findListByUserAddress(Integer type, String userAddress);
+
+    List<Integer> findIdListByUserAddress(Integer type, String userAddress);
 }

@@ -63,6 +63,60 @@
         limit #{limit}
     </select>
 
+    <!--    <select id="getErc20TokenListBySearchWord" resultType="semios.dex.model.dto.response.Erc20BalanceResDto">-->
+    <!--		select-->
+    <!--		<if test="userAddress != null and userAddress != ''">-->
+    <!--			t2.erc20_balance,-->
+    <!--		</if>-->
+    <!--			t1.erc20_name,-->
+    <!--			t1.erc20_symbol,-->
+    <!--			t1.erc20_address-->
+    <!--		from-->
+    <!--			(-->
+    <!--			select-->
+    <!--					erc20_name,-->
+    <!--					erc20_symbol,-->
+    <!--					erc20_address,-->
+    <!--					erc20_block_time-->
+    <!--			from-->
+    <!--					erc20_liquidity-->
+    <!--			where-->
+    <!--					is_del = 0-->
+    <!--				and dao_status = 1-->
+    <!--			<choose>-->
+    <!--				<when test= "erc20Address != null and erc20Address != ''">-->
+    <!--					and erc20_address = #{erc20Address}-->
+    <!--				</when>-->
+    <!--				<otherwise>-->
+    <!--					<if test="searchWord != null and searchWord != ''">-->
+    <!--					and-->
+    <!--					(erc20_name like concat('%', #{searchWord}, '%')-->
+    <!--					or erc20_symbol like concat('%', #{searchWord}, '%'))-->
+    <!--					</if>-->
+    <!--				</otherwise>-->
+    <!--			</choose>-->
+    <!--		) t1-->
+    <!--		<if test="userAddress != null and userAddress != ''">-->
+    <!--		left join-->
+    <!--		(-->
+    <!--			select-->
+    <!--				erc20_address,-->
+    <!--				erc20_balance-->
+    <!--			from-->
+    <!--				user_liquidity_statistics-->
+    <!--			where-->
+    <!--				user_address = #{userAddress}-->
+    <!--		) t2-->
+    <!--		on-->
+    <!--			t1.erc20_address = t2.erc20_address-->
+    <!--		</if>-->
+    <!--		order by-->
+    <!--		<if test="userAddress != null and userAddress != ''">-->
+    <!--			t2.erc20_balance desc,-->
+    <!--		</if>-->
+    <!--			t1.erc20_block_time-->
+    <!--    </select>-->
+    <!--注释掉了and dao status =1 -->
     <select id="getErc20TokenListBySearchWord" resultType="semios.dex.model.dto.response.Erc20BalanceResDto">
         select
         <if test="userAddress != null and userAddress != ''">
@@ -82,7 +136,6 @@
         erc20_liquidity
         where
         is_del = 0
-        and dao_status = 1
         <choose>
             <when test="erc20Address != null and erc20Address != ''">
                 and erc20_address = #{erc20Address}

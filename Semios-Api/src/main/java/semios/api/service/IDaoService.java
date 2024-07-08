@@ -27,6 +27,8 @@ public interface IDaoService extends IService<Dao> {
 
     List<Dao> searchDao(String searchId);
 
+    Page<Dao> searchDao(IPage<Dao> page,String searchId);
+
     List<Dao> selectDaoByIds(List<Integer> ids);
 
     List<Dao> searchSeedNodes(String searchId);
@@ -128,4 +130,8 @@ public interface IDaoService extends IService<Dao> {
 
     // 通过projectID 获取聚合dao
     Dao getTogetherDaoBySubDaoProjectId(String projectId);
+
+    Page<Dao> getCollectionsDaoList(IPage<Dao> page, DaoSortedReqVo daoSortedReqVo);
+
+    Page<Dao> getDaoListByTogetherDaoId(IPage<Dao> page, String togetherDaoId);
 }

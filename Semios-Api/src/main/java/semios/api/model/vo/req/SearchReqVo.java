@@ -19,4 +19,15 @@ public class SearchReqVo {
      * 返回条数
      */
     private Integer number;
+
+
+    /**
+     * 每页显示多少条
+     */
+    private Long pageSize = 10L;
+
+    /**
+     * 当前页数
+     */
+    private Long pageNo = 1L;
 }

@@ -69,35 +69,23 @@ public class DaoErc20Dto {
      * feePool地址
      */
     private String feePool;
-    /**
-     * 版税二次交易收益
-     */
-    private BigDecimal royaltyFeeIncome;
 
-    public static DaoErc20Dto transfer(Dao dao) {
-        DaoErc20Dto erc20SearchResVo = new DaoErc20Dto();
-        erc20SearchResVo.setDaoId(dao.getId() + "");
-        erc20SearchResVo.setErc20Address(dao.getErc20Token());
-        erc20SearchResVo.setDaoName(dao.getDaoName());
-        erc20SearchResVo.setDaoLogoUrl(dao.getDaoLogoUrl());
-        erc20SearchResVo.setProjectId(dao.getProjectId());
-        erc20SearchResVo.setFeePool(dao.getFeePool());
-        erc20SearchResVo.setDaoAssetPool(dao.getFeePool());
-        erc20SearchResVo.setEthInPool(dao.getDaoAssetPool());
-        if (StringUtils.isNotBlank(dao.getErc20TotalSupply())) {
-            erc20SearchResVo.setTotalSupply(new BigDecimal(dao.getErc20TotalSupply()));
-        }
-        if (dao.getDaoReward() != null) {
-            erc20SearchResVo.setDistributedSupply(dao.getDaoReward());
-        }
-        if (dao.getBurnAmount() != null) {
-            erc20SearchResVo.setBurnVolume(dao.getBurnAmount());
-        }
-        if (dao.getRoyaltyFeeIncome() != null) {
-            erc20SearchResVo.setRoyaltyFeeIncome(dao.getRoyaltyFeeIncome());
-        }
-        return erc20SearchResVo;
-    }
+    /**
+     * 1.7 支付货币类型
+     */
+    private String payCurrencyType;
+
+    /**
+     * 1.7 input token的address
+     */
+    private String inputTokenAddress;
+
+    /**
+     * 1.7 input token的decimals
+     */
+    private Integer inputTokenDecimals;
+
+
 
     /**
      * 已发放量减Burn的数量
@@ -123,6 +111,42 @@ public class DaoErc20Dto {
             burnVolume = BigDecimal.ZERO;
         }
         return totalSupply.subtract(burnVolume);
+    }
+
+    /**
+     * 版税二次交易收益
+     */
+    private BigDecimal royaltyFeeIncome;
+
+    public static DaoErc20Dto transfer(Dao dao) {
+        DaoErc20Dto erc20SearchResVo = new DaoErc20Dto();
+        erc20SearchResVo.setDaoId(dao.getId() + "");
+        erc20SearchResVo.setErc20Address(dao.getErc20Token());
+        erc20SearchResVo.setDaoName(dao.getDaoName());
+        erc20SearchResVo.setDaoLogoUrl(dao.getDaoLogoUrl());
+        erc20SearchResVo.setProjectId(dao.getProjectId());
+        erc20SearchResVo.setFeePool(dao.getFeePool());
+        erc20SearchResVo.setDaoAssetPool(dao.getFeePool());
+        erc20SearchResVo.setEthInPool(dao.getDaoAssetPool());
+
+        erc20SearchResVo.setPayCurrencyType(dao.getPayCurrencyType());
+        erc20SearchResVo.setInputTokenAddress(dao.getInputTokenAddress());
+        erc20SearchResVo.setInputTokenDecimals(dao.getInputTokenDecimals());
+
+
+        if (StringUtils.isNotBlank(dao.getErc20TotalSupply())) {
+            erc20SearchResVo.setTotalSupply(new BigDecimal(dao.getErc20TotalSupply()));
+        }
+        if (dao.getDaoReward() != null) {
+            erc20SearchResVo.setDistributedSupply(dao.getDaoReward());
+        }
+        if (dao.getBurnAmount() != null) {
+            erc20SearchResVo.setBurnVolume(dao.getBurnAmount());
+        }
+        if (dao.getRoyaltyFeeIncome() != null) {
+            erc20SearchResVo.setRoyaltyFeeIncome(dao.getRoyaltyFeeIncome());
+        }
+        return erc20SearchResVo;
     }
 
 }

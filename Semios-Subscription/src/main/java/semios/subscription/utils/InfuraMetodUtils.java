@@ -1,6 +1,5 @@
 package semios.subscription.utils;
 
-import com.sun.javafx.binding.StringFormatter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -165,7 +164,7 @@ public class InfuraMetodUtils {
     //==================private==================//
     private static <T> ResponseEntity<T> postForEntity(String network, String method, Object param, Class<T> responseType) {
 
-        String requestUrl = StringFormatter.format(infuraUrl, network, EventListener.infuraProjectId).getValue();
+        String requestUrl = String.format(infuraUrl, network, EventListener.infuraProjectId);
 
         InfuraRequestDto infuraParam = new InfuraRequestDto();
         infuraParam.setMethod(method);
@@ -211,7 +210,7 @@ public class InfuraMetodUtils {
         if (params instanceof List) {
             infuraParam.setParams(params);
         }
-        String requestUrl = StringFormatter.format(infuraUrl, "mainnet", "1cfe15d1bb424b1ab863a1e045cfb69a").getValue();
+        String requestUrl = String.format(infuraUrl, "mainnet", "1cfe15d1bb424b1ab863a1e045cfb69a");
         ResponseEntity<String> responseEntity = postForEntity(requestUrl, InfuraMethodConstant.eth_call, params, String.class);
         System.out.println(responseEntity.getBody());
         System.out.println(JacksonUtil.obj2json(infuraParam));

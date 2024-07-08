@@ -1711,6 +1711,9 @@ public class CommonService {
             mintWindowInfoVo.setInternalRewardEth(ProtoDaoCommonUtil.bigdecimalToString(new BigDecimal(mintWindowInfoVo.getBlockRewardEth()).multiply(ProtoDaoCommonUtil.bigdecimalPercentage(daoAllocationStrategyEth.getRoyaltyProportion()))));
         }
 
+        mintWindowInfoVo.setDaoToken(TrueOrFalseEnum.TRUE.getStatus().equals(dao.getErc20PaymentMode()));
+
+
         return mintWindowInfoVo;
     }
 

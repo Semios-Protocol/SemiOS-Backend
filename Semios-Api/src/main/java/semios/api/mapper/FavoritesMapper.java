@@ -1,10 +1,10 @@
 package semios.api.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Select;
 import semios.api.model.entity.Favorites;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 import java.util.List;
 
@@ -27,5 +27,8 @@ public interface FavoritesMapper extends BaseMapper<Favorites> {
 
 
     List<Favorites> findListByUserAddress(Integer type, String userAddress);
+
+    @Select("select favorite_id from favorites where type = #{type} and user_address = #{userAddress} ")
+    List<Integer> findIdListByUserAddress(Integer type, String userAddress);
 
 }
