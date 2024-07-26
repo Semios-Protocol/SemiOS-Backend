@@ -79,10 +79,17 @@ public interface WorkTopupHarvestMapper extends BaseMapper<WorkTopupHarvest> {
 //            "  inner join dao d on w.dao_id=d.id " +
 //            "  where w.owner_address = #{address} and w.drb_number=d.current_round and w.work_status=1 and w.is_del=0 " + // and (t.erc20_amount=0 and t.eth_amount=0)
 //            "  group by t.dao_id order by t.dao_id desc;")
-    @Select("select any_value(COALESCE(d.exist_dao_id, d.project_id)) as projectId,w.owner_address as userAddress from work  w " +
-            "  inner join dao d on w.dao_id = d.id " +
-            "  where w.owner_address=#{address} and d.topup_mode=1  and w.drb_number=d.current_round and w.work_status=1  and w.is_del=0 " +
-            "  group by d.id order by d.id desc; ")
+//    @Select("select any_value(COALESCE(d.exist_dao_id, d.project_id)) as projectId,w.owner_address as userAddress from work  w " +
+//            "  inner join dao d on w.dao_id = d.id " +
+//            "  where w.owner_address=#{address} and d.topup_mode=1  and w.drb_number=d.current_round and w.work_status=1  and w.is_del=0 and w.mount_work_id is not null" +
+//            "  group by d.id order by d.id desc; ")
+    @Select("select distinct(any_value(COALESCE(d.exist_dao_id, d.project_id))) as projectId,w2.owner_address as userAddress " +
+            "from work_topup_harvest wth " +
+            "inner join work w1 on wth.work_id=w1.id " +
+            "inner join work w2 on wth.mount_work_id=w2.id " +
+            "inner join dao d on w1.dao_id = d.id " +
+            "where w2.owner_address=#{address} and d.topup_mode=1 and w1.drb_number=d.current_round and w2.work_status=1 and w2.is_del=0 " +
+            "group by d.id order by d.id desc;")
     List<DaoProjectVo> selectPendingBalanceByAddress(String address);
 
 
@@ -95,12 +102,20 @@ public interface WorkTopupHarvestMapper extends BaseMapper<WorkTopupHarvest> {
 //            "    inner join work w2 on t.mount_work_id=w2.id " +
 //            "    inner join dao d2 on w2.dao_id = d2.id " +
 //            "    where w2.owner_address=#{address} and w1.drb_number=d1.current_round order by t.create_time desc ")
+//    @Select("select w1.id as mintedWorkId,w1.dao_id as mintedDaoId,w1.work_number as mintedWorkNumber,d1.dao_name as mintedDaoName,w1.minted_price as mintFee, d1.pay_currency_type as mintedDaoPayCurrencyType, d1.input_token_address as mintedDaoInputTokenAddress, " +
+//            "     w2.id as voucherWorkId,w2.dao_id as voucherDaoId,w2.work_number as voucherWorkNumber,d2.dao_name as voucherDaoName,w1.create_time as createTimestamp " +
+//            "    from  " +
+//            "    (select * from work where owner_address=#{address}) w1 " +
+//            "    inner join (select * from dao where project_id=#{projectId} || exist_dao_id=#{projectId} and topup_mode=1 and is_together_dao=0) d1 on w1.dao_id = d1.id " +
+//            "    inner join work w2 on w1.mount_work_id = w2.id " +
+//            "    inner join dao d2 on d2.id = w2.dao_id " +
+//            "    where w1.drb_number=d1.current_round order by w1.create_time desc;")
     @Select("select w1.id as mintedWorkId,w1.dao_id as mintedDaoId,w1.work_number as mintedWorkNumber,d1.dao_name as mintedDaoName,w1.minted_price as mintFee, d1.pay_currency_type as mintedDaoPayCurrencyType, d1.input_token_address as mintedDaoInputTokenAddress, " +
-            "     w2.id as voucherWorkId,w2.dao_id as voucherDaoId,w2.work_number as voucherWorkNumber,d2.dao_name as voucherDaoName,w1.create_time as createTimestamp " +
+            "    w2.id as voucherWorkId,w2.dao_id as voucherDaoId,w2.work_number as voucherWorkNumber,d2.dao_name as voucherDaoName,w1.create_time as createTimestamp " +
             "    from  " +
-            "    (select * from work where owner_address=#{address}) w1 " +
+            "    work w1 " +
             "    inner join (select * from dao where project_id=#{projectId} || exist_dao_id=#{projectId} and topup_mode=1 and is_together_dao=0) d1 on w1.dao_id = d1.id " +
-            "    inner join work w2 on w1.mount_work_id = w2.id " +
+            "    inner join (select * from work where owner_address=#{address}) w2 on w1.mount_work_id = w2.id " +
             "    inner join dao d2 on d2.id = w2.dao_id " +
             "    where w1.drb_number=d1.current_round order by w1.create_time desc;")
     List<UserTopupBalancePendingDetailVo> selectTopUpPendingSeeMore(String address, String projectId);

@@ -20,7 +20,10 @@ import semios.api.model.enums.DaoStatusEnum;
 import semios.api.model.enums.SignPrivacyEnum;
 import semios.api.model.enums.TrueOrFalseEnum;
 import semios.api.model.vo.req.*;
+import semios.api.model.vo.req.NodePermission.SelectNftPermission;
 import semios.api.model.vo.res.*;
+import semios.api.model.vo.res.NodePermission.SelectPermissionNft;
+import semios.api.model.vo.res.NodePermission.UserPermissionNft;
 import semios.api.model.vo.res.TopUpReward.TopupNftListVo;
 import semios.api.model.vo.res.TopUpReward.UserTopupRewardDetailVo;
 import semios.api.model.vo.res.TopUpReward.UserTopupRewardVo;
@@ -88,6 +91,45 @@ public class UserController {
 
     @Autowired
     private ICollectRecordService collectRecordService;
+
+    @Autowired
+    private INodePermissionNftService nodePermissionNftService;
+
+    // -------------  private ------------------
+    private static Long computedEndBlockTime(Dao dao, BigDecimal blockNumber) {
+        if (dao == null) {
+            return null;
+        }
+        BigDecimal denominator = new BigDecimal(dao.getDuration()).divide(new BigDecimal("1e18"));  // 分母=每周期出块数量
+        log.info("分母=每周期出块数量:" + denominator);
+        log.info("当前区块数:" + blockNumber);
+        BigDecimal startBlockNumber = new BigDecimal(dao.getDaoStartBlock()); // 开始区块
+        log.info("开始区块:" + startBlockNumber);
+        BigDecimal currentRound = new BigDecimal(Integer.parseInt(dao.getCurrentRound()) - 1);   // 已经完成周期数
+        log.info("当前周期数:" + currentRound);
+        BigDecimal numThisCurrentRound = blockNumber.subtract(startBlockNumber).subtract(currentRound.multiply(denominator));
+
+        if (dao.getDaoRestartBlock() != null) {
+            log.info("重新开始的区块高度为:" + dao.getDaoRestartBlock());
+            BigDecimal restartBlock = new BigDecimal(dao.getDaoRestartBlock());
+            BigDecimal roundSub = restartBlock.subtract(startBlockNumber);
+            log.info("重新开始的时间-开始的时间的差值:" + roundSub);
+            BigDecimal[] resultDiv = roundSub.divideAndRemainder(denominator);
+            log.info("时间差对每个周期的区块数相除的值:" + JacksonUtil.obj2json(resultDiv));
+            BigDecimal blockRemainder = resultDiv[1];
+            numThisCurrentRound = numThisCurrentRound.subtract(blockRemainder);
+        }
+        log.info("当前周期内已经出了多少块:" + numThisCurrentRound);
+
+        BigDecimal numerator = denominator.subtract(numThisCurrentRound);
+        log.info("分子：还有多少块到下个周期:" + numerator);
+        // 如果小于0，返回0
+        if (numerator.compareTo(BigDecimal.ZERO) < 0) {
+            // 代表即将结束
+            return 0L;
+        }
+        return numerator.multiply(new BigDecimal(ProtoDaoConstant.BLOCK_SECONDS)).multiply(new BigDecimal("1000")).longValue();
+    }
 
     /**
      * 用户登陆接口 返回data信息为true代表已签署隐私协议，为false代表未签署隐私协议
@@ -937,7 +979,7 @@ public class UserController {
     userIncomeForWalletReceived(@RequestBody(required = false) UserProfileReqVo userProfileReqVo) {
         Result<UserWalletReceivedIncomeVo> result = new Result<>();
         // 此接口功能上已经不用，返回空
-        if (StringUtils.isNotBlank(userProfileReqVo.getUserAddress())){
+        if (StringUtils.isNotBlank(userProfileReqVo.getUserAddress())) {
             result.setData(new UserWalletReceivedIncomeVo());
             return result;
         }
@@ -1019,7 +1061,7 @@ public class UserController {
         for (Canvas canvas : canvasList) {
             if (!ProtoDaoConstant.D4APause && !canvas.getDaoStatus().equals(DaoStatusEnum.SHUT_DOWN.getStatus())
                     && !canvas.getCanvasStatus().equals(CanvasStatusEnum.SHUT_DOWN.getStatus())
-                    && canvas.getUnclaimedToken().compareTo(BigDecimal.ZERO) > 0) {
+                    && (canvas.getUnclaimedToken().compareTo(BigDecimal.ZERO) > 0) || canvas.getUnclaimedEth().compareTo(BigDecimal.ZERO) > 0) {
                 Dao canvasDao = daoService.getById(canvas.getDaoId());
                 //钱包这里topup模式的不展示
                 if (canvasDao != null && TrueOrFalseEnum.TRUE.getStatus().equals(canvasDao.getTopupMode())) {
@@ -1134,7 +1176,6 @@ public class UserController {
         return result;
     }
 
-
     /**
      * 1.8 钱包中以dao为维度返回的topup余额信息(修改接口)
      */
@@ -1154,11 +1195,11 @@ public class UserController {
         }
 
         List<WorkTopupDaoBalanceVo> workTopupHarvests = workTopupHarvestService.selectTopUpBalanceByAddress(userAddress);
-        if (workTopupHarvests.isEmpty()){
+        if (workTopupHarvests.isEmpty()) {
             return result;
         }
 
-        for (WorkTopupDaoBalanceVo workTopupHarvest:workTopupHarvests){
+        for (WorkTopupDaoBalanceVo workTopupHarvest : workTopupHarvests) {
             Dao dao = daoService.getById(workTopupHarvest.getDaoId());
             if (dao == null) {
                 continue;
@@ -1167,6 +1208,11 @@ public class UserController {
 
             UserTopupBalanceVo userTopupBalanceVo = new UserTopupBalanceVo();
             BeanUtils.copyProperties(daoListVo, userTopupBalanceVo);
+
+            if (dao.getTogetherDaoId() != null) {
+                Dao togetherDao = daoService.daoDetailByDaoId(dao.getTogetherDaoId());
+                userTopupBalanceVo.setDaoName(togetherDao.getDaoName()); // 聚合dao name
+            }
 
             userTopupBalanceVo.setTokenBalance(workTopupHarvest.getErc20Amount());
             userTopupBalanceVo.setEthBalance(workTopupHarvest.getEthAmount());
@@ -1177,8 +1223,8 @@ public class UserController {
             BigDecimal offChainBalance = workTopupHarvest.getErc20Amount().add(workTopupHarvest.getEthAmount());
             BigDecimal onChainBalance = workTopupHarvest.getOnChainEthBalance().add(workTopupHarvest.getOnChainTokenBalance());
 
-            // 如果不想等，就可以update，为true
-            // 如果想等，不可以update，为false
+            // 如果不相等，就可以update，为true
+            // 如果相等，不可以update，为false
             userTopupBalanceVo.setIsUpdateBalance(!offChainBalance.equals(onChainBalance));
 
             userTopupBalanceVos.add(userTopupBalanceVo);
@@ -1188,16 +1234,16 @@ public class UserController {
         return result;
     }
 
-
     /**
      * 1.5 返回dao下用户持有的nft资产详情列表
+     *
      * @return WorkLockDuration
      * @apiNote 用户在top-up balance页面点击see more后调用，传入当前的dao id
      */
     @PostMapping(value = "/topup/balance/details")
     public ResultList<UserTopupBalanceDetailsVo> topupBalanceMore(@RequestBody DaoIdReqVo daoIdReqVo, HttpServletRequest request) {
         ResultList<UserTopupBalanceDetailsVo> result = new ResultList<>();
-        if (StringUtils.isBlank(daoIdReqVo.getDaoId())){
+        if (StringUtils.isBlank(daoIdReqVo.getDaoId())) {
             result.setResultDesc("dao id is null.");
             result.setResultCode(ResultDesc.PARAM_ERROR.getResultCode());
             return result;
@@ -1217,7 +1263,7 @@ public class UserController {
             return result;
         }
 
-        List<UserTopupBalanceDetailsVo> userTopupBalanceDetailsVos = workTopupHarvestService.selectTopUpSeeMore(userAddress,daoIdReqVo.getDaoId());
+        List<UserTopupBalanceDetailsVo> userTopupBalanceDetailsVos = workTopupHarvestService.selectTopUpSeeMore(userAddress, daoIdReqVo.getDaoId());
 
         userTopupBalanceDetailsVos.forEach(vo -> {
             vo.setPayCurrencyType(dao.getPayCurrencyType());
@@ -1227,11 +1273,9 @@ public class UserController {
         });
 
 
-
         result.setDataList(userTopupBalanceDetailsVos);
         return result;
     }
-
 
     /**
      * 1.8 钱包中以dao为维度返回的topup pending信息
@@ -1248,23 +1292,13 @@ public class UserController {
             return result;
         }
         List<DaoProjectVo> workTopupDaoBalanceVos = workTopupHarvestService.selectPendingBalanceByAddress(userAddress);
-        if (workTopupDaoBalanceVos.isEmpty()){
+        if (workTopupDaoBalanceVos.isEmpty()) {
             result.setDataList(new ArrayList<>());
             return result;
         }
 
-//        Result<String> resultBlockNum = iSubscriptionService.ethGetBlockNumber(ProtoDaoConstant.netWork);
-//        if (resultBlockNum.getResultCode() != ResultDesc.SUCCESS.getResultCode()) {
-//            log.error("[drbInfo] ethGetBlockNumber error:{}", result.getResultDesc());
-//            result.setResultCode(ResultDesc.ERROR.getResultCode());
-//            result.setResultDesc("network anomaly！ please try again later!");
-//            return result;
-//        }
-
-//        BigDecimal blockNumber =  new BigDecimal(CommonUtil.hexToTenString(resultBlockNum.getData())); // 当前区块数
-
         List<UserTopupBalancePendingVo> userTopupBalancePendingVos = new ArrayList<>();
-        for (DaoProjectVo daoProjectVo:workTopupDaoBalanceVos){
+        for (DaoProjectVo daoProjectVo : workTopupDaoBalanceVos) {
             UserTopupBalancePendingVo userTopupBalancePendingVo = UserTopupBalancePendingVo.transfer(daoProjectVo);
             userTopupBalancePendingVos.add(userTopupBalancePendingVo);
         }
@@ -1272,7 +1306,6 @@ public class UserController {
 
         return result;
     }
-
 
     /**
      * 1.8 钱包中以dao为维度返回的topup pending信息 detail信息
@@ -1297,38 +1330,35 @@ public class UserController {
             return result;
         }
 
-        BigDecimal blockNumber =  new BigDecimal(CommonUtil.hexToTenString(resultBlockNum.getData())); // 当前区块数
+        BigDecimal blockNumber = new BigDecimal(CommonUtil.hexToTenString(resultBlockNum.getData())); // 当前区块数
 
         List<UserTopupBalancePendingDetailVo> userTopupBalancePendingDetailVos = workTopupHarvestService.selectTopUpPendingSeeMore(userAddress, CommonUtil.removeHexPrefixIfExists(daoProjectVo.getProjectId()));
-        for (UserTopupBalancePendingDetailVo userTopupBalancePendingDetailVo : userTopupBalancePendingDetailVos){
+        for (UserTopupBalancePendingDetailVo userTopupBalancePendingDetailVo : userTopupBalancePendingDetailVos) {
             userTopupBalancePendingDetailVo.setOperationTime(userTopupBalancePendingDetailVo.getCreateTimestamp().getTime());
 
             // minted dao 可能是sub dao
             Dao mintDao = daoService.getById(userTopupBalancePendingDetailVo.getMintedDaoId());
-            userTopupBalancePendingDetailVo.setEndBlockTime(computedEndBlockTime(mintDao,blockNumber));
+            userTopupBalancePendingDetailVo.setEndBlockTime(computedEndBlockTime(mintDao, blockNumber));
         }
         result.setDataList(userTopupBalancePendingDetailVos);
         return result;
     }
-
-
 
     /**
      * 1.8 返回topup balance reward信息
      */
     @PostMapping(value = "/topup/balance/reward")
     public ResultList<UserTopupRewardVo> topupBalanceReward(@RequestBody(required = false) UserProfileReqVo userProfileReqVo) {
-        // TODO 修改接口
         // 获取当前登陆用户下可以领取的钱和未领取的钱有不为0的seed nodes list
         ResultList<UserTopupRewardVo> result = new ResultList<>();
 
-        log.info("[topupBalanceReward] userAddress:{}",userProfileReqVo.getUserAddress());
+        log.info("[topupBalanceReward] userAddress:{}", userProfileReqVo.getUserAddress());
         List<UserTopupRewardVo> userTopupRewardVos = nftRewardAllocationService.selectUserTopupRewardVo(userProfileReqVo.getUserAddress());
-        if (userTopupRewardVos.isEmpty()){
+        if (userTopupRewardVos.isEmpty()) {
             result.setDataList(new ArrayList<>());
             return result;
         }
-        for (UserTopupRewardVo userTopupRewardVo : userTopupRewardVos){
+        for (UserTopupRewardVo userTopupRewardVo : userTopupRewardVos) {
             userTopupRewardVo.setProjectId(CommonUtil.addHexPrefixIfNotExist(userTopupRewardVo.getProjectId()));
         }
 
@@ -1338,26 +1368,23 @@ public class UserController {
         return result;
     }
 
-
     /**
      * 1.8 返回topup balance reward信息
      */
     @PostMapping(value = "/topup/balance/reward/detail")
     public ResultList<UserTopupRewardDetailVo> topupBalanceRewardDetail(@RequestBody(required = false) DaoProjectVo daoProjectVo) {
-
-        // TODO 新增接口
         // 获取指定seed nodes下所有plan的明细
         ResultList<UserTopupRewardDetailVo> result = new ResultList<>();
 
-        List<UserTopupRewardDetailVo> rewardDetailList = nftRewardAllocationService.selectUserTopupRewardDetailVo(CommonUtil.removeHexPrefixIfExists(daoProjectVo.getProjectId()),daoProjectVo.getUserAddress());
-        if (rewardDetailList.isEmpty()){
+        List<UserTopupRewardDetailVo> rewardDetailList = nftRewardAllocationService.selectUserTopupRewardDetailVo(CommonUtil.removeHexPrefixIfExists(daoProjectVo.getProjectId()), daoProjectVo.getUserAddress());
+        if (rewardDetailList.isEmpty()) {
             result.setDataList(new ArrayList<>());
             return result;
         }
 
-        for (UserTopupRewardDetailVo userTopupRewardDetailVo : rewardDetailList){
-            BigDecimal collectableAmount =  collectRecordService.getPlanTotalCollectedByDaoId(daoProjectVo.getUserAddress(),userTopupRewardDetailVo.getPlanCode());
-            userTopupRewardDetailVo.setCollectedAmount(collectableAmount!=null?collectableAmount:BigDecimal.ZERO);
+        for (UserTopupRewardDetailVo userTopupRewardDetailVo : rewardDetailList) {
+            BigDecimal collectableAmount = collectRecordService.getPlanTotalCollectedByDaoId(daoProjectVo.getUserAddress(), userTopupRewardDetailVo.getPlanCode());
+            userTopupRewardDetailVo.setCollectedAmount(collectableAmount != null ? collectableAmount : BigDecimal.ZERO);
         }
 
         result.setDataList(rewardDetailList);
@@ -1372,46 +1399,57 @@ public class UserController {
 
         // 需要查询当前登陆账户的
         ResultList<TopupNftListVo> result = new ResultList<>();
-        List<TopupNftListVo> topupNftListVos = workTopupHarvestService.getTopupNftListVoByProjectAndAddress(CommonUtil.removeHexPrefixIfExists(daoProjectVo.getProjectId()),daoProjectVo.getUserAddress());
+        List<TopupNftListVo> topupNftListVos = workTopupHarvestService.getTopupNftListVoByProjectAndAddress(CommonUtil.removeHexPrefixIfExists(daoProjectVo.getProjectId()), daoProjectVo.getUserAddress());
         result.setDataList(topupNftListVos);
         return result;
     }
 
+    /**
+     * 1.10 My Permissions页面 返回当前登陆用户的权限
+     */
+    @PostMapping(value = "/permissions")
+    public ResultList<UserPermissionNft> myPermissions(@RequestBody(required = false) UserProfilePageReqVo userProfilePageReqVo) {
+        ResultList<UserPermissionNft> result = new ResultList<>();
 
-    // -------------  private ------------------
-    private static Long computedEndBlockTime(Dao dao,BigDecimal blockNumber){
-        if (dao==null){
-            return null;
-        }
-        BigDecimal denominator = new BigDecimal(dao.getDuration()).divide(new BigDecimal("1e18"));  // 分母=每周期出块数量
-        log.info("分母=每周期出块数量:"+denominator);
-        log.info("当前区块数:"+blockNumber);
-        BigDecimal startBlockNumber = new BigDecimal(dao.getDaoStartBlock()); // 开始区块
-        log.info("开始区块:"+startBlockNumber);
-        BigDecimal currentRound = new BigDecimal(Integer.parseInt(dao.getCurrentRound())-1);   // 已经完成周期数
-        log.info("当前周期数:"+currentRound);
-        BigDecimal numThisCurrentRound = blockNumber.subtract(startBlockNumber).subtract(currentRound.multiply(denominator));
+        Page<UserPermissionNft> iPage = new Page<>(userProfilePageReqVo.getPageNo(), userProfilePageReqVo.getPageSize());
+        Page<UserPermissionNft> userPermissionNftPage = nodePermissionNftService.selectUserPermissionNft(iPage, userProfilePageReqVo.getUserAddress());
 
-        if (dao.getDaoRestartBlock()!=null){
-            log.info("重新开始的区块高度为:"+dao.getDaoRestartBlock());
-            BigDecimal restartBlock = new BigDecimal(dao.getDaoRestartBlock());
-            BigDecimal roundSub = restartBlock.subtract(startBlockNumber);
-            log.info("重新开始的时间-开始的时间的差值:"+roundSub);
-            BigDecimal[] resultDiv = roundSub.divideAndRemainder(denominator);
-            log.info("时间差对每个周期的区块数相除的值:"+ JacksonUtil.obj2json(resultDiv));
-            BigDecimal blockRemainder = resultDiv[1];
-            numThisCurrentRound = numThisCurrentRound.subtract(blockRemainder);
-        }
-        log.info("当前周期内已经出了多少块:"+numThisCurrentRound);
+        result.setDataList(userPermissionNftPage.getRecords());
 
-        BigDecimal numerator = denominator.subtract(numThisCurrentRound);
-        log.info("分子：还有多少块到下个周期:"+numerator);
-        // 如果小于0，返回0
-        if (numerator.compareTo(BigDecimal.ZERO)<0){
-            // 代表即将结束
-            return 0L;
+        semios.api.model.dto.common.Page page = new semios.api.model.dto.common.Page();
+        page.setPageNo(userProfilePageReqVo.getPageNo());
+        page.setPageSize(userProfilePageReqVo.getPageSize());
+        page.setCount(userPermissionNftPage.getTotal());
+        result.setPage(page);
+
+        return result;
+    }
+
+    /**
+     * 1.10 select nft页面 当前登陆用户持有的nft列表与绑定的权限数量
+     */
+    @PostMapping(value = "/permissions/nft")
+    public ResultList<SelectPermissionNft> permissionNftList(@RequestBody(required = false) SelectNftPermission selectNftPermission) {
+        ResultList<SelectPermissionNft> result = new ResultList<>();
+
+        if (selectNftPermission.getWorkId() == null || StringUtils.isBlank(selectNftPermission.getUserAddress())) {
+            result.setResultCode(ResultDesc.PARAM_ERROR.getResultCode());
+            result.setResultDesc(ResultDesc.PARAM_ERROR.getResultDesc());
+            return result;
         }
-        return numerator.multiply(new BigDecimal(ProtoDaoConstant.BLOCK_SECONDS)).multiply(new BigDecimal("1000")).longValue();
+
+        Page<SelectPermissionNft> iPage = new Page<>(selectNftPermission.getPageNo(), selectNftPermission.getPageSize());
+        Page<SelectPermissionNft> userPermissionNftPage = nodePermissionNftService.selectPermissionNftCount(iPage, selectNftPermission.getUserAddress(), selectNftPermission.getWorkId());
+
+        result.setDataList(userPermissionNftPage.getRecords());
+
+        semios.api.model.dto.common.Page page = new semios.api.model.dto.common.Page();
+        page.setPageNo(selectNftPermission.getPageNo());
+        page.setPageSize(selectNftPermission.getPageSize());
+        page.setCount(userPermissionNftPage.getTotal());
+        result.setPage(page);
+
+        return result;
     }
 
 }

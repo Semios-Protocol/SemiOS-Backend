@@ -174,7 +174,7 @@ public interface WorkMapper extends BaseMapper<Work> {
     List<Work> selectTopupWorkForCal(Integer drb);
 
 
-    @Select("select count(distinct minted_address) as minters,count(id) as mintedWorks,sum(minted_price) as mintFee from `work` where is_del = 0 and dao_id = #{daoId} and work_status = 1 and drb_number = #{drb} ")
+    @Select("select count(distinct minted_address) as minters,count(id) as mintedWorks,sum(minted_price) as mintFee from `work` where is_del = 0 and dao_id = #{daoId} and work_status = 1 and drb_number = #{drb} and generate != 3 ")
     WorkCountBo selectDrbNftOwnerCountByDaoId(String daoId, Integer drb);
 
     @Select("select * from `work` where is_del = 0 and dao_id = #{daoId} and work_status = 1 and drb_number = #{drb}")
@@ -235,4 +235,7 @@ public interface WorkMapper extends BaseMapper<Work> {
             + "when work_description like concat('%', #{searchId}, '%') then 1\n" + "end as ord\n"
             + "from `work` where is_del = 0 and work_status !=2 and (creator_address like concat('%', #{searchId}, '%') or work_description like concat('%', #{searchId}, '%') or work_hash = #{searchId}) order by ord desc,block_time desc ")
     Page<Work> searchWork(IPage<Work> page,String searchId);
+
+    @Select("select * from `work` where transaction_hash=#{transactionHash} and is_del=0 limit 1")
+    Work selectWorkByTransactionHash(String transactionHash);
 }

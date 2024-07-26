@@ -12,8 +12,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,7 +24,7 @@ public class CommonUtil {
     public static final Pattern pattern = Pattern.compile("[\u4E00-\u9FA5|\\！|\\，|\\。|\\（|\\）|\\《|\\》|\\“|\\”|\\？|\\：|\\；|\\【|\\】]");
 
     public static String removeHexPrefixIfExists(String hexString) {
-        if(StringUtils.isBlank(hexString)){
+        if (StringUtils.isBlank(hexString)) {
             return "";
         }
         hexString = hexString.toLowerCase();
@@ -41,7 +39,7 @@ public class CommonUtil {
     }
 
     public static String addHexPrefixIfNotExist(String hexString) {
-        if(StringUtils.isBlank(hexString)){
+        if (StringUtils.isBlank(hexString)) {
             return "";
         }
         if (hexString.startsWith("0x")) {
@@ -88,7 +86,7 @@ public class CommonUtil {
     }
 
     public static String hexToAscii(String hexStr) {
-        StringBuilder output = new StringBuilder("");
+        StringBuilder output = new StringBuilder();
         for (int i = 0; i < hexStr.length(); i += 2) {
             String str = hexStr.substring(i, i + 2);
             output.append((char) Integer.parseInt(str, 16));
@@ -265,7 +263,6 @@ public class CommonUtil {
     /**
      * 计算N小时之后的区块高度
      *
-     *
      * @param days 距离23年12月11日的差多少天
      * @return
      */
@@ -309,8 +306,8 @@ public class CommonUtil {
                 new BigInteger(ProtoDaoConstant.etherscanBlockNumber).multiply(new BigInteger(String.valueOf(days)).multiply(new BigInteger(String.valueOf(24)))));
     }
 
-    public static BigDecimal getPowBigDecimal(Integer decimal){
-        if (decimal==null){
+    public static BigDecimal getPowBigDecimal(Integer decimal) {
+        if (decimal == null) {
             return new BigDecimal(ProtoDaoConstant.BASIC_RATIO);
         }
         return new BigDecimal("10").pow(decimal);
@@ -337,7 +334,7 @@ public class CommonUtil {
      * @return
      */
     public static boolean patternWork(String name) {
-        String work = "^PDAO.T[1-9][0-9]*.[1-9][0-9]*$";
+        String work = "^PDAO\\.T[1-9][0-9]*\\.[1-9][0-9]*$";
         Pattern pattern = Pattern.compile(work);
         Matcher matcher = pattern.matcher(name);
         return matcher.matches();
@@ -377,8 +374,6 @@ public class CommonUtil {
     }
 
 
-
-
     public static void main(String[] args) throws Exception {
 
 //        int a = 6397;
@@ -406,17 +401,19 @@ public class CommonUtil {
 //        System.out.println(res);
 
 
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate dateParam2 = LocalDate.parse("2024-06-14", df);
-        LocalDateTime midnight = LocalDateTime.of(dateParam2, LocalTime.MIDNIGHT);
-        ZonedDateTime targetMidnight = midnight.atZone(ZoneId.systemDefault());
+//        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//        LocalDate dateParam2 = LocalDate.parse("2024-06-14", df);
+//        LocalDateTime midnight = LocalDateTime.of(dateParam2, LocalTime.MIDNIGHT);
+//        ZonedDateTime targetMidnight = midnight.atZone(ZoneId.systemDefault());
+//
+//        ZonedDateTime now = ZonedDateTime.now(ZoneId.systemDefault());
+//        Duration duration = Duration.between(now, targetMidnight);
+//
+//        System.out.println(duration.toHours());
+//
+//        System.out.println(calculateStartBlockHeight(duration.toHours()));
 
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.systemDefault());
-        Duration duration = Duration.between(now, targetMidnight);
-
-        System.out.println(duration.toHours());
-
-        System.out.println(calculateStartBlockHeight(duration.toHours()));
+        System.out.println(fillLeadingZerosInBytes32("0"));
     }
 }
 

@@ -503,7 +503,7 @@ public class SearchController {
      * @return
      */
     public boolean patternWork(String name) {
-        String work = "^PDAO.T[1-9][0-9]*.[1-9][0-9]*$";
+        String work = "^PDAO\\.T[1-9][0-9]*\\.[1-9][0-9]*$";
         Pattern pattern = Pattern.compile(work);
         Matcher matcher = pattern.matcher(name);
         return matcher.matches();

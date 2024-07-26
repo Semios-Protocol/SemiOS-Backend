@@ -6,10 +6,13 @@ import org.springframework.stereotype.Service;
 import semios.api.model.dto.response.TransactionDto;
 import semios.api.model.entity.Canvas;
 import semios.api.model.entity.Dao;
+import semios.api.model.entity.Work;
 import semios.api.model.enums.DaoStatusEnum;
 import semios.api.model.enums.TrueOrFalseEnum;
+import semios.api.model.enums.WorkStatusEnum;
 import semios.api.service.ICanvasService;
 import semios.api.service.IDaoService;
+import semios.api.service.IWorkService;
 import semios.api.service.SubscriberChainService;
 import semios.api.service.common.CommonService;
 import semios.api.utils.CommonUtil;
@@ -38,6 +41,9 @@ public class DaoRestartChainService implements SubscriberChainService {
 
     @Autowired
     private ICanvasService canvasService;
+
+    @Autowired
+    private IWorkService workService;
 
     public static void main(String[] args) {
         String data = "58d2d3c7a28441df4656fab3eb0e51d94a45b38100a7e74dba50afae6124d6d72ae972c0263f681f4f35a5fbffcb8860ddb2ceb32ab4e3a4d8f6912888dca8c8000000000000000000000000ffd23ddffa1d6181c8a711a8b4939eedf9cc00bd0000000000000000000000000000000000000000000000000000000000000000";
@@ -111,6 +117,18 @@ public class DaoRestartChainService implements SubscriberChainService {
         updateDao.setLastModifyRound(commonService.getDaoLastModifyRound(dao).intValue());
         daoService.updateById(updateDao);
         log.info("[DaoRestartChainService] daoId:{} updateDao:{}", dao.getId(), JacksonUtil.obj2json(updateDao));
+
+
+        // 如果当前dao的周期重新开始运行，则将该node下所有 失效状态的 的work置为 未铸造状态
+        List<Work> workList =
+                workService.selectWorksByDaoIdAndStatus(dao.getId() + "", WorkStatusEnum.EXPIRED.getStatus());
+        if (!workList.isEmpty()) {
+            workList.forEach(v -> {
+                v.setWorkStatus(WorkStatusEnum.NOT_CAST.getStatus());
+            });
+            workService.updateBatchById(workList);
+        }
+
 
     }
 }

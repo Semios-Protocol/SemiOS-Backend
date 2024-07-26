@@ -338,4 +338,9 @@ public class WorkServiceImpl extends ServiceImpl<WorkMapper, Work> implements IW
     public Page<Work> searchWork(IPage<Work> page,String searchId){
         return workMapper.searchWork(page,searchId);
     }
+
+    @Override
+    public Work selectWorkByTransactionHash(String transactionHash) {
+        return workMapper.selectWorkByTransactionHash(transactionHash);
+    }
 }

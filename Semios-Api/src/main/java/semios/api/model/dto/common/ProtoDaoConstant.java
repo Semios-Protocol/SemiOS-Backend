@@ -1,13 +1,12 @@
 package semios.api.model.dto.common;
 
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @description: 常量
@@ -125,9 +124,12 @@ public class ProtoDaoConstant {
 
     public static String galleryDao;
     public static String royaltyFeeDao;
-
+    public static String uploadUrl;
 
     public static String workImageDefaultUrl;
+
+    public static String nftImageDefaultUrl;
+
 
     public static String workImageDaoLogoUrl;
 
@@ -223,6 +225,12 @@ public class ProtoDaoConstant {
     public void setUrlPrefix(String urlPrefix) {
         log.info("urlPrefix:{}", urlPrefix);
         ProtoDaoConstant.urlPrefix = urlPrefix;
+    }
+
+    @Value("${upload_daoUrl}")
+    public void setUploadUrl(String uploadUrl) {
+        log.info("uploadUrl:{}", uploadUrl);
+        ProtoDaoConstant.uploadUrl = uploadUrl;
     }
 
     @Value("${name_check_list}")
@@ -354,6 +362,12 @@ public class ProtoDaoConstant {
     public void setWorkImageDefaultUrl(String workImageDefaultUrl) {
         log.info("work_image_default_url:{}", workImageDefaultUrl);
         ProtoDaoConstant.workImageDefaultUrl = workImageDefaultUrl;
+    }
+
+    @Value("${nft_image_default_url}")
+    public void setNftImageDefaultUrl(String nftImageDefaultUrl) {
+        log.info("nftImageDefaultUrl:{}", nftImageDefaultUrl);
+        ProtoDaoConstant.nftImageDefaultUrl = nftImageDefaultUrl;
     }
 
     @Value("${work_image_dao_logo_url}")

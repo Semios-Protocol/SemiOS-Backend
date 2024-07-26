@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
-import semios.api.model.dto.common.ProtoDaoConstant;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -79,10 +78,14 @@ public class ImageUtil {
             return null;
         } finally {
             if (bufferedImage != null) {
-                bufferedImage.flush();
+                if (!path.contains("..") || !path.contains("\\") || path.startsWith("/home/ubuntu/")) {
+                    bufferedImage.flush();
+                }
             }
             if (file.exists()) {
-                file.delete();
+                if (!path.contains("..") || !path.contains("\\") || path.startsWith("/home/ubuntu/")) {
+                    file.delete();
+                }
             }
         }
     }
@@ -157,6 +160,12 @@ public class ImageUtil {
         FileInputStream fileInputStream = null;
         try {
             MessageDigest MD5 = MessageDigest.getInstance("MD5");
+            String path = file.getPath();
+            if (path.contains("..") || path.contains("\\") || !path.startsWith("/home/ubuntu/")) {
+                log.error("[getMD5] path is invalid:{}", path);
+                throw new IllegalArgumentException("Invalid filename");
+            }
+
             fileInputStream = new FileInputStream(file);
             byte[] buffer = new byte[8192];
             int length;
@@ -200,10 +209,7 @@ public class ImageUtil {
             return false;
         }
         // 判断content type是不是image
-        if (!contentType.contains(imageType)) {
-            return false;
-        }
-        return true;
+        return contentType.contains(imageType);
     }
 
     // ====================private=========//
@@ -345,6 +351,9 @@ public class ImageUtil {
     private static File getFileByMultipartFile(MultipartFile multipartFile, String path) {
         File file = new File(path);
         try {
+            if (!path.startsWith("/home/ubuntu/dao4art/api/logs/")) {
+                throw new IllegalArgumentException("Invalid filename");
+            }
             FileUtils.copyInputStreamToFile(multipartFile.getInputStream(), file);
         } catch (Exception e) {
             log.error("[getFileByMultipartFile] error", e);
@@ -369,48 +378,95 @@ public class ImageUtil {
     public static void imageAddText(String workImageDefaultUrl, String fileDir, String daoName, String workName, String formateName) {
         try {
             // 加载图片
-//            BufferedImage image = ImageIO.read(new File("/Users/xiangbin/IdeaProjects/ProtoDAO-api/src/main/resources/image/work_default.png"));
             BufferedImage image = ImageIO.read(new File(workImageDefaultUrl));
             // 创建画布
-            Graphics graphics = image.createGraphics();
+            Graphics2D graphics = image.createGraphics();
+            // 设置抗锯齿
+            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
             // 设置字体和颜色
             Font daoFont = new Font("Arial", Font.BOLD, 32);
-//            Font daoFont = new Font("Arial", Font.BOLD, 20);
             Color daoColor = Color.WHITE;
             graphics.setFont(daoFont);
             graphics.setColor(daoColor);
 
             // 在画布上添加文字
             daoName = daoName.trim();
+            int x = 60;
+            int y = 120;
+            int lineHeight = 40;
+            int numberOfLines = 0;
+
             if (daoName.length() > 45) {
                 daoName = daoName.substring(0, 45);
             }
-            if (daoName.length() > 12) {
-                for (int i = 0; i < 4; i++) {
-                    int j = Math.min(((i + 1) * 12), daoName.length());
-                    if (i * 12 >= daoName.length()) break;
-                    graphics.drawString(daoName.substring(i * 12, j).toUpperCase(), 60, 120 + (i * 40));
-                }
-            } else {
-                graphics.drawString(daoName.toUpperCase().toUpperCase(), 60, 200);
+
+            for (int i = 0; i < 4; i++) {
+                int j = Math.min(((i + 1) * 12), daoName.length());
+                if (i * 12 >= daoName.length()) break;
+                graphics.drawString(daoName.substring(i * 12, j).toUpperCase(), x, y);
+                y += lineHeight;
+                numberOfLines++;
             }
 
-
+            // 绘制 workName
             if (StringUtils.isNotBlank(workName)) {
-                Font workFont = new Font("Arial", Font.PLAIN, 16);
+                Font workFont = new Font("Arial", Font.PLAIN, 30);
                 Color workColor = Color.WHITE;
                 graphics.setFont(workFont);
                 graphics.setColor(workColor);
-                graphics.drawString(workName, 60, 286);
+                // 动态调整 workName 的 y 坐标
+                graphics.drawString(workName, x, y + lineHeight); // 在最后一行文字下方绘制
             }
 
             // 保存图片
-//            ImageIO.write(image, "png", new File("/Users/xiangbin/IdeaProjects/ProtoDAO-api/src/main/resources/image/work_default-1.png"));
+            //ImageIO.write(image, "png", new File("/Users/zhyyao/java/proToDao/protodao-api/src/main/resources/image/work_default-1.png"));
             ImageIO.write(image, formateName, new File(fileDir));
         } catch (Exception e) {
             log.error("[imageAddText] daoName:{} e:{}", daoName, e);
         }
+    }
 
+    public static void imageAddTextNft(String workImageDefaultUrl, String fileDir, String daoName, String formateName) {
+        try {
+            // 加载图片
+            BufferedImage image = ImageIO.read(new File(workImageDefaultUrl));
+            // 创建画布
+            Graphics2D graphics = image.createGraphics();
+            // 设置抗锯齿
+            graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+            // 设置字体和颜色
+            Font daoFont = new Font("Arial", Font.BOLD, 80);
+            Color daoColor = Color.WHITE;
+            graphics.setFont(daoFont);
+            graphics.setColor(daoColor);
+
+            // 在画布上添加文字
+            daoName = daoName.trim();
+            int lineHeight = 80; // 设置行间距
+            int x = 60;
+            int y = 200;
+
+            if (daoName.length() > 45) {
+                daoName = daoName.substring(0, 45);
+            }
+
+            for (int i = 0; i < daoName.length(); i += 12) {
+                int end = Math.min(i + 12, daoName.length());
+                String line = daoName.substring(i, end).toUpperCase();
+                graphics.drawString(line, x, y);
+                y += lineHeight;
+            }
+
+            // 保存图片
+            //ImageIO.write(image, "png", new File("/Users/zhyyao/java/proToDao/protodao-api/src/main/resources/image/nft_default-1.png"));
+            ImageIO.write(image, formateName, new File(fileDir));
+        } catch (Exception e) {
+            log.error("[imageAddText] daoName:{} e:{}", daoName, e);
+        }
     }
 
     public static void main(String[] args) {
@@ -437,7 +493,9 @@ public class ImageUtil {
 //                .multiply(new BigDecimal(String.valueOf(height))).setScale(0, RoundingMode.FLOOR).doubleValue();
 //        System.out.println(ddd);
 
-        imageAddText(ProtoDaoConstant.workImageDefaultUrl, "", "semios", "work1234", "png");
+        imageAddText("src/main/resources/image/work_default.png", "", "yeeyeeyeeyeeyeeyeeyeeyeeyeeyeeyeeyeeyeeyee", "123asasdadas", "png");
+        imageAddTextNft("src/main/resources/image/nft_default.png", "", "yeeyeeyeeyeeyeeyeeyeeyeeyeeyeeyeeyeeyeeyee", "png");
+
         System.out.println(" 123 234 ".trim().length());
     }
 
