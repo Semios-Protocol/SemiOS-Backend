@@ -13,18 +13,18 @@ import semios.api.model.entity.Canvas;
 import semios.api.model.entity.Dao;
 import semios.api.model.entity.Favorites;
 import semios.api.model.entity.Work;
+import semios.api.model.vo.req.DaoInfo.DaoInfoVo;
 import semios.api.model.vo.req.FavoriteReqVo;
 import semios.api.model.vo.req.UserProfilePageReqVo;
-import semios.api.model.vo.res.*;
+import semios.api.model.vo.req.WorkInfo.WorkInfo;
+import semios.api.model.vo.res.CanvasListResVo;
+import semios.api.model.vo.res.WorkListVoV2;
 import semios.api.service.*;
 import semios.api.service.common.CommonService;
-import semios.api.utils.JacksonUtil;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -60,35 +60,23 @@ public class FavoritesController {
      * 收藏列表-dao
      */
     @PostMapping(value = "/dao")
-    public Result<TogetherDaoListVo> daoFavorite(@RequestBody(required = false) UserProfilePageReqVo userProfilePageReqVo) {
-
-        Result<TogetherDaoListVo> result = new Result<>();
+    public Result<DaoInfoVo> daoFavorite(@RequestBody(required = false) UserProfilePageReqVo userProfilePageReqVo) {
+        Result<DaoInfoVo> result = new Result<>();
         String userAddress = userProfilePageReqVo.getUserAddress();
-
         Page<Dao> iPage = new Page<>(userProfilePageReqVo.getPageNo(), userProfilePageReqVo.getPageSize());
         Page<Dao> daoPage = daoService.findFavoritesByUserAddress(iPage, userAddress);
         List<Dao> daoList = daoPage.getRecords();
-        List<DaoListVo> daoListVoList =
-                daoList.stream().map(v -> DaoListVo.transfer(v, null, true)).collect(Collectors.toList());
-        log.info("[FavoritesController]--原来的值:" + JacksonUtil.obj2json(daoListVoList));
-        // 1.4.3更改返回值
-        if (daoListVoList.isEmpty()) {
+
+        List<Integer> favoritesIds = daoList.stream().map(Dao::getId).collect(Collectors.toList());
+
+        List<DaoInfoVo> daoInfoVoList = daoList.stream()
+                .map(v -> DaoInfoVo.transfer(v, favoritesIds))
+                .collect(Collectors.toList());
+        if (daoInfoVoList.isEmpty()) {
             result.setDataList(new ArrayList<>());
         } else {
-            List<Integer> daoIdList = daoListVoList.stream().map(DaoListVo::getDaoId).collect(Collectors.toList());
-            log.info("[FavoritesController]--dao id:" + JacksonUtil.obj2json(daoIdList));
-            Map<Integer, Dao> daoMap = daoService.selectDaoByIds(daoIdList)
-                    .stream()
-                    .collect(Collectors.toMap(Dao::getId, dao -> dao, (existing, replacement) -> existing, LinkedHashMap::new));
-
-            List<TogetherDaoListVo> togetherDaoListVoList = daoIdList.stream()
-                    .map(v -> TogetherDaoListVo.transferTogetherDaoListVo(daoMap.get(v), userAddress))
-                    .collect(Collectors.toList());
-            //List<TogetherDaoListVo> togetherDaoListVoList = daoListTo.stream().map(v-> TogetherDaoListVo.transferTogetherDaoListVo(v,userAddress)).collect(Collectors.toList());
-
-            result.setDataList(togetherDaoListVoList);
+            result.setDataList(daoInfoVoList);
         }
-
 
         semios.api.model.dto.common.Page page = new semios.api.model.dto.common.Page();
         page.setPageNo(userProfilePageReqVo.getPageNo());
@@ -131,18 +119,19 @@ public class FavoritesController {
      * 收藏列表-works
      */
     @PostMapping(value = "/work")
-    public Result<WorkListVo> workFavorite(@RequestBody(required = false) UserProfilePageReqVo userProfilePageReqVo) {
+    public Result<WorkInfo> workFavorite(@RequestBody(required = false) UserProfilePageReqVo userProfilePageReqVo) {
 
-        Result<WorkListVo> result = new Result<>();
+        Result<WorkInfo> result = new Result<>();
         String userAddress = userProfilePageReqVo.getUserAddress();
 
         Page<Work> iPage = new Page<>(userProfilePageReqVo.getPageNo(), userProfilePageReqVo.getPageSize());
         Page<Work> workPage = workService.findFavoritesByUserAddress(iPage, userAddress);
-        List<Work> workList = workPage.getRecords();
-        workList.forEach(v -> v.setFavorited(true));
-        List<WorkListVo> workListVoList =
-                workList.stream().map(v -> WorkListVo.transfor(v, null)).collect(Collectors.toList());
-        result.setDataList(workListVoList);
+        List<Work> works = workPage.getRecords();
+        List<Integer> favoritesIds = works.stream().map(Work::getId).collect(Collectors.toList());
+
+        List<WorkInfo> workListVos =
+                works.stream().map(v -> WorkInfo.transfer(v, favoritesIds)).collect(Collectors.toList());
+        result.setDataList(workListVos);
 
         semios.api.model.dto.common.Page page = new semios.api.model.dto.common.Page();
         page.setPageNo(userProfilePageReqVo.getPageNo());

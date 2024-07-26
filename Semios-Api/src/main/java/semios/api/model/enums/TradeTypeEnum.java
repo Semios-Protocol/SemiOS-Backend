@@ -138,7 +138,16 @@ public enum TradeTypeEnum {
     PlanRewardClaimed("PlanRewardClaimed", "Claimed奖励记录", false, SubscriberTypeEnum.EVENT, "planRewardClaimedChainService", "0x6df0d30ccd4f96ceb372a7eee962371f89463b963d4970962dea4a6646185d09"),
 
     // 更新onChainBalance
-    TopUpAccountUpdated("TopUpAccountUpdated", "更新onChainBalance", false, SubscriberTypeEnum.EVENT, "topUpAccountUpdatedChainService", "0xfc1f5941de2e389cc0deb38e38420424a2e876572dea8cfb2a297b39b022848a");
+    TopUpAccountUpdated("TopUpAccountUpdated", "更新onChainBalance", false, SubscriberTypeEnum.EVENT, "topUpAccountUpdatedChainService", "0xfc1f5941de2e389cc0deb38e38420424a2e876572dea8cfb2a297b39b022848a"),
+
+
+    DaoEditInformationNftOwnerSet("DaoEditInformationNftOwnerSet", "转移Edit Information权限所有dao均有", false, SubscriberTypeEnum.EVENT, "daoEditInformationNftOwnerSetChainService", "0x2f42496343b0bf6886ffb703f087eea8f1a06b7802407bbb7f2974b05ff305fc"),
+    DaoEditParameterNftOwnerSet("DaoEditParameterNftOwnerSet", "转移Edit On-chain parameters权限(所有dao均有)", false, SubscriberTypeEnum.EVENT, "daoEditParameterNftOwnerSetChainService", "0x70f896b18f07f19c3b8c713635192a57ac5d49729cd867aa5328d0be2cadea00"),
+    DaoEditStrategyNftOwnerSet("DaoEditStrategyNftOwnerSet", "转移Edit Strategies权限(所有dao均有)", false, SubscriberTypeEnum.EVENT, "daoEditStrategyNftOwnerSetChainService", "0x75cac64a6b5dc64e5c863e66104f6ff3b7809cea055ba794027e25cdd7bbdf45"),
+    DaoRewardNftOwnerSet("DaoRewardNftOwnerSet", "转移SubNodes Creator收益权限(所有dao均有)", false, SubscriberTypeEnum.EVENT, "daoRewardNftOwnerSetChainService", "0x789f647231d97f01880a8e96caf0763f01497db63b0e66f5a93536a45583a70c"),
+    TreasurySetTopUpRatioOwnerSet("TreasurySetTopUpRatioOwnerSet", "转移设置top-up账户分流权限(仅main dao)", false, SubscriberTypeEnum.EVENT, "treasurySetTopUpRatioOwnerSetChainService", "0xfe13a4ee0df34165c526b06714fac432dc5ea4a6a8eb7c501538274616cc9c62"),
+    TreasuryEditInformationOwnerSet("TreasuryEditInformationOwnerSet", "转移编辑seed nodes information的权限(仅main dao)", false, SubscriberTypeEnum.EVENT, "treasuryEditInformationOwnerSetChainService", "0xf56fbe351490b7aefbaf51475fd6c70f3a07567e5c2c24696ff9d6c0519577ca"),
+    TreasuryTransferAssetOwnerSet("TreasuryTransferAssetOwnerSet", "转移国库的分配权限(仅main dao)", false, SubscriberTypeEnum.EVENT, "treasuryTransferAssetOwnerSetChainService", "0xfb266fbf14421b044f89efe9ad6f9bede353c6bec592a53c4fabba037fc4b9ea");
 
     @Getter
     private String type;

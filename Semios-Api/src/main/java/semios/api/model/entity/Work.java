@@ -179,7 +179,7 @@ public class Work implements Serializable {
     private BigDecimal fixedPrice;
 
     /**
-     * 是否自动生成 1-自动生成 2-上传的
+     * 是否自动生成 1-自动生成 2-上传的 3-合约生成的NFT
      */
     private Integer generate;
 

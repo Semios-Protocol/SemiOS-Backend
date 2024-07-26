@@ -20,11 +20,21 @@
         left join canvas as can on `work`.canvas_id = can.canvas_id
         where `work`.is_del = 0 and `work`.work_status = 0 and dao.dao_status > 0 and dao.dao_status != 3
         <if test="daoSortedReqVo.minPrice != null and daoSortedReqVo.minPrice != ''">
-            and IFNULL(IFNULL(`work`.fixed_price,can.current_price), dao.canvas_floor_price) <![CDATA[>=]]>
+            and
+            CASE
+            WHEN dao.global_dao_price IS NOT NULL AND dao.global_dao_price > 0
+            THEN dao.global_dao_price
+            ELSE IFNULL(`work`.fixed_price, IFNULL(dao.canvas_floor_price, can.current_price))
+            END <![CDATA[>=]]>
             #{daoSortedReqVo.minPrice}
         </if>
         <if test="daoSortedReqVo.maxPrice != null and daoSortedReqVo.maxPrice != ''">
-            and IFNULL(IFNULL(`work`.fixed_price,can.current_price), dao.canvas_floor_price) <![CDATA[<=]]>
+            and
+            CASE
+            WHEN dao.global_dao_price IS NOT NULL AND dao.global_dao_price > 0
+            THEN dao.global_dao_price
+            ELSE IFNULL(`work`.fixed_price, IFNULL(dao.canvas_floor_price, can.current_price))
+            END <![CDATA[<=]]>
             #{daoSortedReqVo.maxPrice}
         </if>
         <if test="daoSortedReqVo.fixedPrice != null and (daoSortedReqVo.fixedPrice == 0 or daoSortedReqVo.fixedPrice == 1)">

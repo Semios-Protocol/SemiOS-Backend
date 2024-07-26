@@ -7,12 +7,15 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.web3j.protocol.core.methods.response.Log;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import semios.api.model.dto.common.ProtoDaoConstant;
 import semios.api.model.dto.common.Result;
 import semios.api.model.dto.common.ResultDesc;
 import semios.api.model.dto.request.InfuraCallRequestDto;
 import semios.api.model.dto.request.NoticeSubValueDto;
 import semios.api.model.dto.request.TransactionCallRequestDto;
+import semios.api.model.dto.request.TransactionDataDto;
 import semios.api.model.dto.response.TransactionDto;
 import semios.api.model.entity.Canvas;
 import semios.api.model.entity.CanvasDrbStatistics;
@@ -34,6 +37,7 @@ import java.math.RoundingMode;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 订阅服务相关接口
@@ -211,6 +215,67 @@ public class SubscriberController {
             return SubscriberStatusEnum.FAIL.getStatus();
         }
         return SubscriberStatusEnum.SUCCESS.getStatus();
+    }
+
+    /**
+     * transaction 本地补充测试
+     *
+     * @ignore 忽略
+     */
+    @PostMapping(value = "/transaction/data")
+    public String transactionCall(@RequestBody(required = false) TransactionDataDto transactionDataDto) {
+        try {
+            TradeTypeEnum typeEnum = TradeTypeEnum.queryByType(transactionDataDto.getTopicType());
+            if (typeEnum == null) {
+                log.error("[transactionCall] tradeTypeEnum is null transactionCallResponseDto:{}",
+                        JacksonUtil.obj2json(transactionDataDto));
+                return SubscriberStatusEnum.FAIL.getStatus();
+            }
+            log.info("[transactionCall] transactionCallResponseDto:{}", JacksonUtil.obj2json(transactionDataDto));
+
+            for (String data : transactionDataDto.getTransactionHash()) {
+
+                Result<String> receiptResult = iSubscriptionService.ethGetTransactionReceipt(ProtoDaoConstant.netWork, CommonUtil.addHexPrefixIfNotExist(data));
+                if (receiptResult.getResultCode() != ResultDesc.SUCCESS.getResultCode()) {
+                    throw new RuntimeException("subscribeService get transaction is error:" + receiptResult.getResultDesc());
+                }
+
+                TransactionReceipt transactionReceipt = JacksonUtil.json2pojo(receiptResult.getData(), TransactionReceipt.class);
+                List<Log> logs = transactionReceipt.getLogs();
+                if (logs.isEmpty()) {
+                    log.info("[transactionCall] transactionCallResponseDto:{}", JacksonUtil.obj2json(transactionDataDto));
+                    return SubscriberStatusEnum.SUCCESS.getStatus();
+                }
+
+                logs = logs.stream()
+                        .filter(log -> log.getTopics() != null && !log.getTopics().isEmpty() && log.getTopics().get(0).equals(CommonUtil.addHexPrefixIfNotExist(typeEnum.getTopic())))
+                        .collect(Collectors.toList());
+                if (logs.isEmpty()) {
+                    log.info("[transactionCall] transactionCallResponseDto:{}", JacksonUtil.obj2json(transactionDataDto));
+                    return SubscriberStatusEnum.SUCCESS.getStatus();
+                }
+
+                Result<String> blockNumber = iSubscriptionService.queryBlockTime(ProtoDaoConstant.netWork, CommonUtil.addHexPrefixIfNotExist(logs.get(0).getBlockNumberRaw()));
+                log.info("blockNumber:" + blockNumber.getData());
+
+                TransactionDto transactionDto = new TransactionDto();
+                transactionDto.setData(CommonUtil.addHexPrefixIfNotExist(logs.get(0).getData()));
+                transactionDto.setBlockTime(blockNumber.getData());
+                transactionDto.setBlockNumber(CommonUtil.addHexPrefixIfNotExist(logs.get(0).getBlockNumberRaw()));
+                transactionDto.setBlockIntNum(Integer.parseInt(CommonUtil.removeHexPrefixIfExists(logs.get(0).getBlockNumberRaw()), 16));
+                transactionDto.setRemoved(logs.get(0).isRemoved() ? "1" : "0");
+                transactionDto.setTopics(JacksonUtil.obj2json(logs.get(0).getTopics()));
+                log.info("transactionDto:" + JacksonUtil.obj2json(transactionDto));
+
+                SubscriberChainService subscriberChainService =
+                        SpringBeanUtil.getBeanByName(typeEnum.getTradeServiceName(), SubscriberChainService.class);
+                subscriberChainService.handleTrade(transactionDto);
+            }
+            return SubscriberStatusEnum.SUCCESS.getStatus();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return SubscriberStatusEnum.FAIL.getStatus();
+        }
     }
 
     /**

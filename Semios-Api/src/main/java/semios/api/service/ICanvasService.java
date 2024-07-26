@@ -57,4 +57,6 @@ public interface ICanvasService extends IService<Canvas> {
     Canvas selectByNumber(Long daoNumber, Long canvasNumber);
 
     List<Canvas> listCanvasByDaoIds(List<Integer> daoIds);
+
+    Canvas selectCanvasByTransactionHash(String transactionHash);
 }

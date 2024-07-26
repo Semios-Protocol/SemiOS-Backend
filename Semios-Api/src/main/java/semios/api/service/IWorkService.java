@@ -135,4 +135,6 @@ public interface IWorkService extends IService<Work> {
     Page<WorkNftDetailsVo> workDetailNft(IPage<Work> page, WorkId workId);
 
     Page<Work> searchWork(IPage<Work> page,String searchId);
+
+    Work selectWorkByTransactionHash(String transactionHash);
 }

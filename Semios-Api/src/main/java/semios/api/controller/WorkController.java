@@ -29,6 +29,7 @@ import semios.api.model.vo.PageVo;
 import semios.api.model.vo.req.*;
 import semios.api.model.vo.res.BaseWorkVo.WorkNftDetailsVo;
 import semios.api.model.vo.res.*;
+import semios.api.model.vo.res.NodePermission.CreateNodeId;
 import semios.api.service.*;
 import semios.api.service.common.CommonService;
 import semios.api.service.feign.ISubscriptionService;
@@ -1863,5 +1864,35 @@ public class WorkController {
 
         result.setData(workLockDuration);
         return result;
+    }
+
+    /**
+     * 1.10 通过交易hash查询0号NFT的id和node id
+     */
+    @PostMapping(value = "/transaction/hash")
+    public Result<CreateNodeId> transactionHashForWork(HttpServletRequest request, @RequestBody(required = false) DaoTransactionHashReqVo daoTransactionHashReqVo) {
+
+        Result<CreateNodeId> result = new Result<>();
+        CreateNodeId createNodeId = new CreateNodeId();
+
+        log.info("[transactionHashForDao] transactionHash:{}", daoTransactionHashReqVo.getTransactionHash());
+
+        //通过交易hash查询dao信息，用于发完交易跳转dao详情
+        Dao dao = daoService.selectDaoByTransactionHash(daoTransactionHashReqVo.getTransactionHash());
+        if (dao != null) {
+            createNodeId.setDaoId(dao.getId());
+        }
+
+        //通过交易hash查询dao信息，用于发完交易跳转dao详情
+        Work work = workService.selectWorkByTransactionHash(daoTransactionHashReqVo.getTransactionHash());
+        if (work != null) {
+            createNodeId.setWorkId(work.getId());
+            createNodeId.setImgUrl(work.getImageUrl());
+            createNodeId.setHeight(work.getHeight());
+            createNodeId.setBgColor(work.getBgColor());
+        }
+        result.setData(createNodeId);
+        return result;
+
     }
 }

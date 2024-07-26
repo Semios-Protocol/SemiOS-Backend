@@ -10,9 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import semios.api.model.dto.common.BucketObjectRepresentaion;
+import semios.api.model.dto.common.ProtoDaoConstant;
 import semios.api.utils.JacksonUtil;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.List;
 
 /**
@@ -44,7 +46,6 @@ public class S3Service {
             amazonS3Client.deleteBucket(bucketName);
         } catch (AmazonServiceException e) {
             log.error(e.getErrorMessage());
-            return;
         }
     }
 
@@ -60,7 +61,16 @@ public class S3Service {
         String objectName = representation.getObjectName();
         String objectValue = representation.getText();
 
-        File file = new File("." + File.separator + objectName);
+        if (!bucketName.contains(ProtoDaoConstant.bucketName)) {
+            throw new IllegalArgumentException("Invalid filename");
+        }
+
+        if (objectName.contains("..") || objectName.contains("\\")) {
+            throw new IllegalArgumentException("Invalid filename");
+        }
+
+        // File file = new File("." + File.separator + objectName);
+        File file = new File(ProtoDaoConstant.uploadUrl + objectName);
         FileWriter fileWriter = new FileWriter(file, false);
         PrintWriter printWriter = new PrintWriter(fileWriter);
         printWriter.println(objectValue);
@@ -95,10 +105,23 @@ public class S3Service {
         if (StringUtils.isNotBlank(imageName)) {
             objectName = imageName + objectName.substring(objectName.lastIndexOf("."));
         }
+
+        if (!bucketName.contains(ProtoDaoConstant.bucketName)) {
+            throw new IllegalArgumentException("Invalid filename");
+        }
+
+        if (imageName.contains("..") || imageName.contains("/") || imageName.contains("\\")) {
+            throw new IllegalArgumentException("Invalid filename");
+        }
+
+        if (StringUtils.isNotBlank(objectName) && objectName.contains("..")) {
+            throw new IllegalArgumentException("Invalid filename");
+        }
+
         File file = new File("." + File.separator + objectName);
 
         try {
-            out = new FileOutputStream(file);
+            out = Files.newOutputStream(file.toPath());
             byte[] ss = multipartFile.getBytes();
             for (int i = 0; i < ss.length; i++) {
                 out.write(ss[i]);
@@ -119,7 +142,7 @@ public class S3Service {
                 out.flush();
                 out.close();
             }
-            if (file.exists()) {
+            if (bucketName.contains(ProtoDaoConstant.bucketName) && file.exists()) {
                 file.delete();
             }
         }
@@ -138,7 +161,7 @@ public class S3Service {
         } catch (Exception e) {
             log.error("Some error has ocurred e", e);
         } finally {
-            if (deleteFile && file.exists()) {
+            if (bucketName.contains(ProtoDaoConstant.bucketName) && deleteFile && file.exists()) {
                 file.delete();
             }
         }
@@ -162,6 +185,13 @@ public class S3Service {
      * @param objectName
      */
     public void downloadObject(String bucketName, String objectName) {
+        if (bucketName.contains("..") || !bucketName.contains("amazonaws")) {
+            throw new IllegalArgumentException("Invalid filename");
+        }
+        if (objectName.contains("..") || objectName.contains("/") || objectName.contains("\\")) {
+            throw new IllegalArgumentException("Invalid filename");
+        }
+
         S3Object s3object = amazonS3Client.getObject(bucketName, objectName);
         S3ObjectInputStream inputStream = s3object.getObjectContent();
         try {

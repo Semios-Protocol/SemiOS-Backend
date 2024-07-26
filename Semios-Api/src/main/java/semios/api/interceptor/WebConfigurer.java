@@ -80,7 +80,7 @@ public class WebConfigurer implements WebMvcConfigurer {
                 "/work/explore/unmintedWorks", "/work/explore/unmintedWorks/v2", "/work/explore/nfts", "/work/explore/nfts/v2", "/work/explore/drbNfts", "/work/rankings/nfts",
                 "/search/amount", "/search/works", "/search/works/v2", "/search/seedNodes", "/search/canvas", "/search/daos", "/user/cookie/info", "/dao/paused",
                 "/dao/canvas", "/dao/available/number", "/dao/new/available", "/dao/analytics/**", "/dex/dao_erc20",
-                "/dex/user", "/common/drb/info", "/event/**", "/sync/**");
+                "/dex/user", "/common/drb/info", "/event/**", "/sync/**", "/transaction/data");
         registry.addInterceptor(canvasPausedInterceptor).addPathPatterns("/**").excludePathPatterns("/user/signature",
                 "/user/privacy/agreement", "/user/login", "/transaction/call", "/method/call", "/doc/**", "/canvas/info",
                 "/canvas/edit/info", "/canvas/unmintedWorks", "/canvas/nfts", "/canvas/drbNfts", "/canvas/rewards",
@@ -90,7 +90,7 @@ public class WebConfigurer implements WebMvcConfigurer {
                 "/work/explore/unmintedWorks", "/work/explore/unmintedWorks/v2", "/work/explore/nfts", "/work/explore/nfts/v2", "/work/explore/drbNfts", "/work/rankings/nfts",
                 "/search/amount", "/search/works", "/search/works/v2", "/search/seedNodes", "/search/canvas", "/search/daos", "/user/cookie/info", "/dao/paused",
                 "/dao/canvas", "/dao/available/number", "/dao/new/available", "/dao/analytics/**", "/dex/dao_erc20",
-                "/dex/user", "/common/drb/info", "/event/**", "/sync/**");
+                "/dex/user", "/common/drb/info", "/event/**", "/sync/**", "/transaction/data");
         registry.addInterceptor(userInterceptor).addPathPatterns("/**").excludePathPatterns("/user/signature",
                 "/user/privacy/agreement", "/user/login", "/transaction/call", "/method/call", "/doc/**", "/canvas/info",
                 "/canvas/unmintedWorks", "/canvas/nfts", "/canvas/drbNfts", "/canvas/rewards", "/canvas/collections",
@@ -101,8 +101,9 @@ public class WebConfigurer implements WebMvcConfigurer {
                 "/user/cookie/info", "/dao/paused", "/dao/canvas", "/contract/abi", "/dao/new/available", "/user/logout",
                 "/dao/user/authority", "/dao/analytics/**", "/dex/dao_erc20", "/dex/user", "/common/drb/info",
                 "/dao/list/protodao", "/dao/protodao/member", "/dao/createWork/info", "/dao/transaction/hash", "/dao/protodao/authority",
-                "/protodao/related", "/dao/times", "/dao/maincreator", "/dao/allcation/list", "/dao/allocation","/event/**","/sync/**","/work/detail/nft","/plan/together/tap",
-                "/plan/together/list","/plan/basic/info","/dao/show/**","/work/show/**");
+                "/protodao/related", "/dao/times", "/dao/maincreator", "/dao/allcation/list", "/dao/allocation", "/event/**", "/sync/**", "/work/detail/nft", "/plan/together/tap",
+                "/plan/together/list", "/plan/basic/info", "/dao/show/info", "/dao/show/window", "/dao/show/basic", "/dao/show/modeStatus", "/dao/show/togetherDao/list", "/dao/show/related", "/dao/show/search",
+                "/work/show/nft/list", "/work/show/works/list", "/work/show/drb/nft/list", "/work/show/search", "/work/show/window", "/permission/node/info", "/permission/detail/**", "/transaction/data");
         registry.addInterceptor(jwtInterceptor).addPathPatterns("/dao/edit", "/canvas/edit", "/favorite/actions",
                 "/favorite/cancel", "/user/profile/save", "/work/edit");
     }

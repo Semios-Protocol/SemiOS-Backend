@@ -60,10 +60,10 @@ public class EthersUtils {
         byte[] signatureBytes = Numeric.hexStringToByteArray(signature);
         byte v = signatureBytes[64];
         if (v < 27) {
-            v += 27;
+            v = (byte) (v + 27);
         }
-        byte[] r = (byte[]) Arrays.copyOfRange(signatureBytes, 0, 32);
-        byte[] s = (byte[]) Arrays.copyOfRange(signatureBytes, 32, 64);
+        byte[] r = Arrays.copyOfRange(signatureBytes, 0, 32);
+        byte[] s = Arrays.copyOfRange(signatureBytes, 32, 64);
         return new SignatureData(v, r, s);
     }
 

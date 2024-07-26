@@ -9,10 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import semios.api.model.dto.request.NoticeSubValueDto;
 import semios.api.model.dto.response.TransactionDto;
 import semios.api.model.entity.*;
-import semios.api.model.enums.ContractMethodEnum;
-import semios.api.model.enums.DaoStatusEnum;
-import semios.api.model.enums.StatisticsStatusEnum;
-import semios.api.model.enums.TrueOrFalseEnum;
+import semios.api.model.enums.*;
 import semios.api.service.*;
 import semios.api.service.common.CommonService;
 import semios.api.utils.CommonUtil;
@@ -272,6 +269,21 @@ public class DaoCurrentRoundChainService implements SubscriberChainService {
 //            //这个保留
 //            commonService.updateTopupModeMinterHarvest(currentRount);
 //        }
+
+
+        // 如果当前dao的周期已经结束，则将该node下所有 未铸造 的work置未失效状态
+        if (updateDao.getDaoStatus() != null && updateDao.getDaoStatus().equals(DaoStatusEnum.FINISHED.getStatus())) {
+            log.info("[DaoCurrentRoundChainService] dao id=:{} is stop,update work not cast.", dao.getId());
+            List<Work> workList =
+                    workService.selectWorksByDaoIdAndStatus(dao.getId() + "", WorkStatusEnum.NOT_CAST.getStatus());
+            if (!workList.isEmpty()) {
+                workList.forEach(v -> {
+                    v.setWorkStatus(WorkStatusEnum.EXPIRED.getStatus());
+                });
+                workService.updateBatchById(workList);
+            }
+        }
+
 
     }
 }

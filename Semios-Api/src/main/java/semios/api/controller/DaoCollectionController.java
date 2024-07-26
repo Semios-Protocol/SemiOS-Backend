@@ -22,7 +22,9 @@ import semios.api.model.vo.req.DaoInfo.DaoInfoVo;
 import semios.api.model.vo.req.DaoSortedReqVo;
 import semios.api.model.vo.req.SearchReqVo;
 import semios.api.model.vo.req.UserProfilePageReqVo;
-import semios.api.model.vo.res.*;
+import semios.api.model.vo.res.BasicInformationVo;
+import semios.api.model.vo.res.MintWindowInfoVo;
+import semios.api.model.vo.res.ModeStatusVo;
 import semios.api.service.IDaoService;
 import semios.api.service.IFavoritesService;
 import semios.api.service.common.CommonService;
@@ -63,7 +65,7 @@ public class DaoCollectionController {
      */
     @PostMapping(value = "/info")
     public ResultList<DaoInfoVo> daoCollections(@RequestBody(required = false) DaoSortedReqVo daoSortedReqVo,
-                                            HttpServletRequest request) {
+                                                HttpServletRequest request) {
         ResultList<DaoInfoVo> result = new ResultList<>();
 
         Page<Dao> iPage = new Page<>(daoSortedReqVo.getPageNo(), daoSortedReqVo.getPageSize());
@@ -72,7 +74,7 @@ public class DaoCollectionController {
 
         String userAddress = CookieUtil.getUserAddressFromCookie(request, ProtoDaoConstant.COOKIE_ADDRESS);
         List<Integer> favoritesIds = new ArrayList<>();
-        if (StringUtils.isNotBlank(userAddress)){
+        if (StringUtils.isNotBlank(userAddress)) {
             favoritesIds = favoritesService.findIdListByUserAddress(FavoriteTypeEnum.DAO_FAVORITE.getType(), userAddress);
         }
         List<Integer> finalFavoritesIds = favoritesIds;
@@ -80,9 +82,9 @@ public class DaoCollectionController {
         List<DaoInfoVo> daoInfoVoList = daoList.stream()
                 .map(v -> DaoInfoVo.transfer(v, finalFavoritesIds))
                 .collect(Collectors.toList());
-        if (daoInfoVoList.isEmpty()){
+        if (daoInfoVoList.isEmpty()) {
             result.setDataList(new ArrayList<>());
-        }else {
+        } else {
             result.setDataList(daoInfoVoList);
         }
 
@@ -95,8 +97,6 @@ public class DaoCollectionController {
         return result;
 
     }
-
-
 
 
     /**
@@ -147,7 +147,7 @@ public class DaoCollectionController {
      */
     @PostMapping(value = "/modeStatus")
     public Result<ModeStatusVo> modeStatus(@RequestBody(required = false) DaoIdParam daoIdParam,
-                                                   HttpServletRequest request) {
+                                           HttpServletRequest request) {
         Result<ModeStatusVo> result = new Result<>();
 
         Dao dao = daoService.daoDetailByDaoId(Integer.valueOf(daoIdParam.getDaoId()));
@@ -165,7 +165,6 @@ public class DaoCollectionController {
     }
 
 
-
     /**
      * 1.9.1 聚合dao页面下所有的dao信息
      * 需要传daoID和分页信息
@@ -173,7 +172,7 @@ public class DaoCollectionController {
      */
     @PostMapping(value = "/togetherDao/list")
     public ResultList<DaoInfoVo> daoListByTogetherId(@RequestBody(required = false) DaoSortedReqVo daoSortedReqVo,
-                                            HttpServletRequest request) {
+                                                     HttpServletRequest request) {
         ResultList<DaoInfoVo> result = new ResultList<>();
         if (daoSortedReqVo == null || StringUtils.isBlank(daoSortedReqVo.getDaoId())) {
             result.setResultDesc(ResultDesc.PARAM_ERROR.getResultDesc());
@@ -194,7 +193,7 @@ public class DaoCollectionController {
         List<Dao> daoList = daoListByTogetherDaoId.getRecords();
         String userAddress = CookieUtil.getUserAddressFromCookie(request, ProtoDaoConstant.COOKIE_ADDRESS);
         List<Integer> favoritesIds = new ArrayList<>();
-        if (StringUtils.isNotBlank(userAddress)){
+        if (StringUtils.isNotBlank(userAddress)) {
             favoritesIds = favoritesService.findIdListByUserAddress(FavoriteTypeEnum.DAO_FAVORITE.getType(), userAddress);
         }
         List<Integer> finalFavoritesIds = favoritesIds;
@@ -203,9 +202,9 @@ public class DaoCollectionController {
         List<DaoInfoVo> daoInfoVoList = daoList.stream()
                 .map(v -> DaoInfoVo.transfer(v, finalFavoritesIds))
                 .collect(Collectors.toList());
-        if (daoInfoVoList.isEmpty()){
+        if (daoInfoVoList.isEmpty()) {
             result.setDataList(new ArrayList<>());
-        }else {
+        } else {
             result.setDataList(daoInfoVoList);
         }
 
@@ -249,7 +248,7 @@ public class DaoCollectionController {
 
         String userAddress = CookieUtil.getUserAddressFromCookie(request, ProtoDaoConstant.COOKIE_ADDRESS);
         List<Integer> favoritesIds = new ArrayList<>();
-        if (StringUtils.isNotBlank(userAddress)){
+        if (StringUtils.isNotBlank(userAddress)) {
             favoritesIds = favoritesService.findIdListByUserAddress(FavoriteTypeEnum.DAO_FAVORITE.getType(), userAddress);
         }
         List<Integer> finalFavoritesIds = favoritesIds;
@@ -257,9 +256,9 @@ public class DaoCollectionController {
         List<DaoInfoVo> daoInfoVoList = daoList.stream()
                 .map(v -> DaoInfoVo.transfer(v, finalFavoritesIds))
                 .collect(Collectors.toList());
-        if (daoInfoVoList.isEmpty()){
+        if (daoInfoVoList.isEmpty()) {
             result.setDataList(new ArrayList<>());
-        }else {
+        } else {
             result.setDataList(daoInfoVoList);
         }
 
@@ -277,9 +276,16 @@ public class DaoCollectionController {
      * 原来的dao/mydao
      */
     @PostMapping(value = "/mydao")
-    public Result<DaoInfoVo> myDao(@RequestBody(required = false) UserProfilePageReqVo userProfilePageReqVo) {
+    public Result<DaoInfoVo> myDao(@RequestBody(required = false) UserProfilePageReqVo userProfilePageReqVo, HttpServletRequest request) {
 
         Result<DaoInfoVo> result = new Result<>();
+        String userAddress = CookieUtil.getUserAddressFromCookie(request, ProtoDaoConstant.COOKIE_ADDRESS);
+        if (StringUtils.isBlank(userAddress)) {
+            result.setResultCode(ResultDesc.SESSION_ERROR.getResultCode());
+            result.setResultDesc("please login!");
+            return result;
+        }
+
         Page<Dao> iPage = new Page<>(userProfilePageReqVo.getPageNo(), userProfilePageReqVo.getPageSize());
         Page<Dao> daoPage = daoService.myDaoList(iPage, userProfilePageReqVo.getUserAddress());
         List<Dao> daoList = daoPage.getRecords();
@@ -288,9 +294,9 @@ public class DaoCollectionController {
         List<DaoInfoVo> daoInfoVoList = daoList.stream()
                 .map(v -> DaoInfoVo.transfer(v, favoritesIds))
                 .collect(Collectors.toList());
-        if (daoInfoVoList.isEmpty()){
+        if (daoInfoVoList.isEmpty()) {
             result.setDataList(new ArrayList<>());
-        }else {
+        } else {
             result.setDataList(daoInfoVoList);
         }
 
@@ -311,7 +317,7 @@ public class DaoCollectionController {
      */
     @PostMapping(value = "/search")
     public Result<DaoInfoVo> searchDao(@RequestBody(required = false) SearchReqVo searchReqVo,
-                                                     HttpServletRequest request) {
+                                       HttpServletRequest request) {
 
         Result<DaoInfoVo> result = new Result<>();
         semios.api.model.dto.common.Page page = new semios.api.model.dto.common.Page();
@@ -346,7 +352,7 @@ public class DaoCollectionController {
                 result.setPage(page);
                 return result;
             }
-            Page<Dao> daoPage = daoService.searchDao(iPage,searchReqVo.getSearchWord());
+            Page<Dao> daoPage = daoService.searchDao(iPage, searchReqVo.getSearchWord());
             daoList = daoPage.getRecords();
             page.setCount(daoPage.getTotal());
         }
@@ -363,7 +369,7 @@ public class DaoCollectionController {
 
         String userAddress = CookieUtil.getUserAddressFromCookie(request, ProtoDaoConstant.COOKIE_ADDRESS);
         List<Integer> favoritesIds = new ArrayList<>();
-        if (StringUtils.isNotBlank(userAddress)){
+        if (StringUtils.isNotBlank(userAddress)) {
             favoritesIds = favoritesService.findIdListByUserAddress(FavoriteTypeEnum.DAO_FAVORITE.getType(), userAddress);
         }
         List<Integer> finalFavoritesIds = favoritesIds;
@@ -371,9 +377,9 @@ public class DaoCollectionController {
         List<DaoInfoVo> daoInfoVoList = daoList.stream()
                 .map(v -> DaoInfoVo.transfer(v, finalFavoritesIds))
                 .collect(Collectors.toList());
-        if (daoInfoVoList.isEmpty()){
+        if (daoInfoVoList.isEmpty()) {
             result.setDataList(new ArrayList<>());
-        }else {
+        } else {
             result.setDataList(daoInfoVoList);
         }
 
@@ -382,8 +388,6 @@ public class DaoCollectionController {
         result.setPage(page);
         return result;
     }
-
-
 
 
 }

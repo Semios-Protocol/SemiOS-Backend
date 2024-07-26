@@ -90,6 +90,11 @@ public class DaoDetailV2Vo implements Serializable {
     private String erc20Address;
 
     /**
+     * erc20地址,和上面的一致，vue3版本需要这个
+     */
+    private String daoErc20Address;
+
+    /**
      * erc721地址
      */
     private String erc721Address;
@@ -324,6 +329,49 @@ public class DaoDetailV2Vo implements Serializable {
      */
     private String daoSymbol;
 
+
+    public void setDaoAssetPool(Float daoAssetPool) {
+        if (daoAssetPool != null) {
+            this.daoAssetPool = daoAssetPool;
+        }
+    }
+
+    public void setWorkNumber(Integer workNumber) {
+        if (workNumber != null) {
+            this.workNumber = workNumber;
+        }
+    }
+
+    public void setNftNumber(Integer nftNumber) {
+        if (nftNumber != null) {
+            this.nftNumber = nftNumber;
+        }
+    }
+
+    public void setFavoriteAmount(Integer favoriteAmount) {
+        if (favoriteAmount != null) {
+            this.favoriteAmount = favoriteAmount;
+        }
+    }
+
+    public void setDaoToken(Long daoToken) {
+        if (daoToken != null) {
+            this.daoToken = daoToken;
+        }
+    }
+
+    public void setMintRevenue(Double mintRevenue) {
+        if (mintRevenue != null) {
+            this.mintRevenue = mintRevenue;
+        }
+    }
+
+    public void setTotalNftCasting(Integer totalNftCasting) {
+        if (totalNftCasting != null) {
+            this.totalNftCasting = totalNftCasting;
+        }
+    }
+
     public static DaoDetailV2Vo transfer(Dao dao, DaoDrbStatistics daoDrbStatistics) {
         DaoDetailV2Vo daoDetailVo = new DaoDetailV2Vo();
         daoDetailVo.setDaoId(dao.getId());
@@ -349,6 +397,7 @@ public class DaoDetailV2Vo implements Serializable {
         daoDetailVo.setTwitterLink(dao.getTwitterLink());
         daoDetailVo.setCreatorAddress(dao.getOwnerAddress());
         daoDetailVo.setErc20Address(CommonUtil.addHexPrefixIfNotExist(dao.getErc20Token()));
+        daoDetailVo.setDaoErc20Address(CommonUtil.addHexPrefixIfNotExist(dao.getErc20Token()));
         daoDetailVo.setErc721Address(CommonUtil.addHexPrefixIfNotExist(dao.getErc721Token()));
         daoDetailVo.setFeePool(CommonUtil.addHexPrefixIfNotExist(dao.getFeePool()));
         daoDetailVo.setBasicDao(dao.getBasicDao());
@@ -396,9 +445,10 @@ public class DaoDetailV2Vo implements Serializable {
 //            }
 //        }
         CommonService commonService = SpringBeanUtil.getBean(CommonService.class);
-        if (commonService != null) {
-            daoDetailVo.setDaoAssetPool(ProtoDaoCommonUtil.bigdecimalToFloat(commonService.getInputToken(dao)));
+        if (commonService != null){
+           daoDetailVo.setDaoAssetPool(ProtoDaoCommonUtil.bigdecimalToFloat(commonService.getInputToken(dao)));
         }
+
 
 
         daoDetailVo.setRoyaltyFee(
@@ -476,47 +526,5 @@ public class DaoDetailV2Vo implements Serializable {
 //        System.out.println(startDateTime);
 //        System.out.println(localTime);
 //        System.out.println(startDateTime - localTime);
-    }
-
-    public void setDaoAssetPool(Float daoAssetPool) {
-        if (daoAssetPool != null) {
-            this.daoAssetPool = daoAssetPool;
-        }
-    }
-
-    public void setWorkNumber(Integer workNumber) {
-        if (workNumber != null) {
-            this.workNumber = workNumber;
-        }
-    }
-
-    public void setNftNumber(Integer nftNumber) {
-        if (nftNumber != null) {
-            this.nftNumber = nftNumber;
-        }
-    }
-
-    public void setFavoriteAmount(Integer favoriteAmount) {
-        if (favoriteAmount != null) {
-            this.favoriteAmount = favoriteAmount;
-        }
-    }
-
-    public void setDaoToken(Long daoToken) {
-        if (daoToken != null) {
-            this.daoToken = daoToken;
-        }
-    }
-
-    public void setMintRevenue(Double mintRevenue) {
-        if (mintRevenue != null) {
-            this.mintRevenue = mintRevenue;
-        }
-    }
-
-    public void setTotalNftCasting(Integer totalNftCasting) {
-        if (totalNftCasting != null) {
-            this.totalNftCasting = totalNftCasting;
-        }
     }
 }

@@ -96,6 +96,7 @@ public class NewProjectForFundingChainService implements SubscriberChainService 
             togetherDao.setInputTokenAddress(dao.getInputTokenAddress());
             togetherDao.setInputTokenDecimals(dao.getInputTokenDecimals());
             togetherDao.setInputTokenLogo(dao.getInputTokenLogo());
+            togetherDao.setTransactionHash(dao.getTransactionHash());
         }
 
 

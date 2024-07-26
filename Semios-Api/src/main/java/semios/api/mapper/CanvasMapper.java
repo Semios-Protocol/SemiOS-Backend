@@ -77,4 +77,7 @@ public interface CanvasMapper extends BaseMapper<Canvas> {
     Canvas selectByNumber(Long daoNumber, Long canvasNumber);
 
     List<Canvas> listCanvasByDaoIds(List<Integer> daoIds);
+
+    @Select("select * from canvas where canvas_status != 0 and transaction_hash = #{transactionHash} limit 1")
+    Canvas selectCanvasByTransactionHash(String transactionHash);
 }

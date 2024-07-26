@@ -127,4 +127,9 @@ public class CanvasServiceImpl extends ServiceImpl<CanvasMapper, Canvas> impleme
         }
         return canvasMapper.listCanvasByDaoIds(daoIds);
     }
+
+    @Override
+    public Canvas selectCanvasByTransactionHash(String transactionHash) {
+        return canvasMapper.selectCanvasByTransactionHash(transactionHash);
+    }
 }

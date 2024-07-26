@@ -56,6 +56,7 @@ public class TransactionDto implements Serializable {
     public TransactionDto transferTransactionDto(Log log) {
         TransactionDto transactionDto = new TransactionDto();
         BeanUtil.copyProperties(log, transactionDto);
+        transactionDto.setBlockNumber(CommonUtil.addHexPrefixIfNotExist(log.getBlockNumberRaw()));
         transactionDto.setBlockIntNum(Integer.parseInt(CommonUtil.removeHexPrefixIfExists(log.getBlockNumberRaw()), 16));
         transactionDto.setRemoved(log.isRemoved() ? "1" : "0");
         transactionDto.setTopics(JacksonUtil.obj2json(log.getTopics()));

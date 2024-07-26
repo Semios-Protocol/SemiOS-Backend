@@ -151,7 +151,7 @@ public class DaoInfoVo implements Serializable {
         daoDetailVo.setInputTokenDecimals(dao.getInputTokenDecimals());
         daoDetailVo.setDaoSymbol(dao.getDaoSymbol());
         daoDetailVo.setDaoErc20Address(CommonUtil.addHexPrefixIfNotExist(dao.getErc20Token()));
-
+        daoDetailVo.setDaoStatus(dao.getDaoStatus());
         return daoDetailVo;
     }
 
