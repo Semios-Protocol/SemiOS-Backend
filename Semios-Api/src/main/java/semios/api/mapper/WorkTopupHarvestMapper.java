@@ -83,7 +83,7 @@ public interface WorkTopupHarvestMapper extends BaseMapper<WorkTopupHarvest> {
 //            "  inner join dao d on w.dao_id = d.id " +
 //            "  where w.owner_address=#{address} and d.topup_mode=1  and w.drb_number=d.current_round and w.work_status=1  and w.is_del=0 and w.mount_work_id is not null" +
 //            "  group by d.id order by d.id desc; ")
-    @Select("select distinct(any_value(COALESCE(d.exist_dao_id, d.project_id))) as projectId,w2.owner_address as userAddress " +
+    @Select("select any_value(COALESCE(d.exist_dao_id, d.project_id)) as projectId,any_value(w2.owner_address) as userAddress,d.id " +
             "from work_topup_harvest wth " +
             "inner join work w1 on wth.work_id=w1.id " +
             "inner join work w2 on wth.mount_work_id=w2.id " +
