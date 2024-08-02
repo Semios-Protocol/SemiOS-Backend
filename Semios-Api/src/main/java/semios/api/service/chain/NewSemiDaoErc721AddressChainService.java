@@ -169,10 +169,12 @@ public class NewSemiDaoErc721AddressChainService implements SubscriberChainServi
             //上传json文件
             String urlPrefix = String.format(ProtoDaoConstant.urlPrefix, ProtoDaoConstant.bucketName);
             try {
-                // 文件上传前的名称 处理图片用
-                s3Service.putImage(ProtoDaoConstant.bucketName + ProtoDaoConstant.workBucketName + "/" + dao.getDaoNumber(), imageFile, imageFileNameAws, true);
+                String nftName = CommonUtil.generateNftName(dao.getOwnerAddress(), dao.getDaoName());
 
-                imageUrl = urlPrefix + ProtoDaoConstant.workBucketName + "/" + dao.getDaoNumber() + "/" + imageFileNameAws;
+                // 文件上传前的名称 处理图片用
+                s3Service.putImage(ProtoDaoConstant.bucketName + ProtoDaoConstant.nftZero + "/" + nftName, imageFile, imageFileNameAws, true);
+
+                imageUrl = urlPrefix + ProtoDaoConstant.nftZero + "/" + nftName + "/" + imageFileNameAws;
                 log.info("[work-create] s3DaoLogoUrl:{}", imageUrl);
             } catch (Exception e) {
                 log.error("[work-create]i:{} upload image error", 0, e);
@@ -183,6 +185,9 @@ public class NewSemiDaoErc721AddressChainService implements SubscriberChainServi
             WorkCreateReqVo workCreateReqVo = new WorkCreateReqVo();
             workCreateReqVo.setImageUrl(imageUrl);
             MintWorkUriDto mintWorkUriDto = MintWorkUriDto.transfer(workCreateReqVo);
+            mintWorkUriDto.setName(dao.getDaoName() + ".0");
+            mintWorkUriDto.setMintedAddress(dao.getOwnerAddress());
+
             String imageName = dao.getDaoNumber() + "-" + 0;
             String fileName = imageName + ".json";
             String s3FileName =

@@ -274,6 +274,7 @@ public class WorkController {
                 }
             }
 
+
             workDetailResVo.setBlockRewardToken(ProtoDaoCommonUtil.bigdecimalToString(remainderErc20));
             workDetailResVo.setBlockRewardEth(ProtoDaoCommonUtil.bigdecimalToString(remainderEth));
         }

@@ -119,6 +119,10 @@ public class S3Service {
         }
 
         File file = new File("." + File.separator + objectName);
+        String filename = file.getName();
+        if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+            throw new IllegalArgumentException("Invalid filename");
+        }
 
         try {
             out = Files.newOutputStream(file.toPath());
@@ -142,8 +146,13 @@ public class S3Service {
                 out.flush();
                 out.close();
             }
-            if (bucketName.contains(ProtoDaoConstant.bucketName) && file.exists()) {
-                file.delete();
+            filename = file.getName();
+            if (!(filename.contains("..") || filename.contains("/") || filename.contains("\\"))) {
+                if (bucketName.contains(ProtoDaoConstant.bucketName) && file.exists()) {
+                    file.delete();
+                }
+            } else {
+                log.error("Invalid filename");
             }
         }
     }
@@ -161,8 +170,13 @@ public class S3Service {
         } catch (Exception e) {
             log.error("Some error has ocurred e", e);
         } finally {
-            if (bucketName.contains(ProtoDaoConstant.bucketName) && deleteFile && file.exists()) {
-                file.delete();
+            String filename = file.getName();
+            if (!(filename.contains("..") || filename.contains("/") || filename.contains("\\"))) {
+                if (bucketName.contains(ProtoDaoConstant.bucketName) && deleteFile && file.exists()) {
+                    file.delete();
+                }
+            } else {
+                log.error("Invalid filename");
             }
         }
     }
