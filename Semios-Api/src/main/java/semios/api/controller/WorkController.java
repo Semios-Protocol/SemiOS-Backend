@@ -260,8 +260,12 @@ public class WorkController {
                 //乐透模式
                 if (TrueOrFalseEnum.TRUE.getStatus().equals(dao.getRoyaltyTokenLotteryMode()) && dao.getLastActiveRound() != null && StringUtils.isNotBlank(dao.getCurrentRound())) {
                     BigDecimal lotteryRount = new BigDecimal(dao.getCurrentRound()).subtract(new BigDecimal(String.valueOf(dao.getLastActiveRound())));
-                    remainderErc20 = remainderErc20.multiply(lotteryRount).divide(new BigDecimal(String.valueOf(dao.getRemainingMintWindow())).add(lotteryRount).subtract(BigDecimal.ONE), 18, RoundingMode.HALF_UP);
-                    remainderEth = remainderEth.multiply(lotteryRount).divide(new BigDecimal(String.valueOf(dao.getRemainingMintWindow())).add(lotteryRount).subtract(BigDecimal.ONE), 18, RoundingMode.HALF_UP);
+                    BigDecimal mintWind = new BigDecimal(String.valueOf(dao.getRemainingMintWindow())).add(lotteryRount).subtract(BigDecimal.ONE);
+                    if (mintWind.compareTo(BigDecimal.ZERO) > 0) {
+                        remainderErc20 = remainderErc20.multiply(lotteryRount).divide(mintWind, 18, RoundingMode.HALF_UP);
+                        remainderEth = remainderEth.multiply(lotteryRount).divide(mintWind, 18, RoundingMode.HALF_UP);
+                    }
+
                 } else {
                     if (dao.getRemainingMintWindow() != null && dao.getRemainingMintWindow() > 0) {
                         remainderErc20 = remainderErc20.divide(new BigDecimal(String.valueOf(dao.getRemainingMintWindow())), 18, RoundingMode.HALF_UP);

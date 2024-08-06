@@ -1131,6 +1131,12 @@ public class DaoController {
                     result.setResultDesc("path is error");
                     return result;
                 }
+
+                String filename = logoFile.getName();
+                if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+                    throw new IllegalArgumentException("Invalid filename");
+                }
+
                 FileUtils.copyInputStreamToFile(multipartFile.getInputStream(), logoFile);
 //                multipartFile.transferTo(logoFile);
                 String imageName = CodeUtil.generateCode('D') + strSuffix;
@@ -1156,6 +1162,13 @@ public class DaoController {
                         result.setResultDesc("path is error");
                         return result;
                     }
+
+
+                    filename = imageFile.getName();
+                    if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+                        throw new IllegalArgumentException("Invalid filename");
+                    }
+
                     FileUtils.copyInputStreamToFile(multipartFile.getInputStream(), imageFile);
 //                multipartFile.transferTo(imageFile);
 
@@ -1957,6 +1970,16 @@ public class DaoController {
             return result;
         }
 
+        String isExistNodeName = NodeNameMapUtil.get(bacisDaoCreateReqVo.getDaoName());
+        if (StringUtils.isNotBlank(isExistNodeName)) {
+            result.setResultDesc("This name is being used by someone else. Please wait for 3 minutes.");
+            result.setResultCode(ResultDesc.ERROR.getResultCode());
+            return result;
+        } else {
+            NodeNameMapUtil.put(bacisDaoCreateReqVo.getDaoName(), useraddress);
+        }
+
+
         String s3FileName;
         String daoUriHash;
         try {
@@ -2015,7 +2038,7 @@ public class DaoController {
             Date yesterday = DateUtil.addDay(new Date(), -1);
             LocalDate dateParam = LocalDate.parse(sdf.format(yesterday), df);
             String yesterdayTime = DateUtil.getThisDayBeginTime(dateParam);
-            String yesterdayBlockNo = ProtoDaoCommonUtil.timestampBlockNo(new BigDecimal(yesterdayTime).divide(new BigDecimal("1000"), 0, BigDecimal.ROUND_UP).toPlainString());
+            String yesterdayBlockNo = ProtoDaoCommonUtil.timestampBlockNo(new BigDecimal(yesterdayTime).divide(new BigDecimal("1000"), 0, RoundingMode.UP).toPlainString());
             log.info("[createBasicDao] yesterdayTime:{} yesterdayBlockNo:{} ", yesterdayTime, yesterdayBlockNo);
             if (StringUtils.isNotBlank(yesterdayBlockNo)) {
 
@@ -2104,6 +2127,11 @@ public class DaoController {
         daoCreateResVo.setCanvasId(CommonUtil.addHexPrefixIfNotExist(canvasId));
         daoCreateResVo.setCreateProjectFee(new BigDecimal(String.valueOf(ProtoDaoConstant.CREATE_PROJECT_FEE)).doubleValue());
 
+        String urlPrefix = String.format(ProtoDaoConstant.urlPrefix, ProtoDaoConstant.bucketName);
+        String nftName = CommonUtil.generateNftName(useraddress, bacisDaoCreateReqVo.getDaoName());
+        String imageFileNameAws = "0-nft.png";
+        String zeroNftImageUrl = urlPrefix + ProtoDaoConstant.nftZero + "/" + nftName + "/" + imageFileNameAws;
+        daoCreateResVo.setZeroNftImageUrl(zeroNftImageUrl);
         log.info("[createBasicDao] return BasicDaoCreateResVo:{}", JacksonUtil.obj2json(daoCreateResVo));
 
         result.setData(daoCreateResVo);
@@ -2826,9 +2854,7 @@ public class DaoController {
         // 应该是用户铸造的而不是用户持有的
         if (dao.getGlobalMintCap() != null && dao.getGlobalMintCap() > 0) {
             int count = workService.selectCountHoldByAddressAndDaoId(userAddress, dao.getId());
-            if (count >= dao.getGlobalMintCap()) {
-                return false;
-            }
+            return count < dao.getGlobalMintCap();
         }
 
         return true;
@@ -2860,11 +2886,7 @@ public class DaoController {
             log.info("[erc721BalanceOf]infura return data:{}", result.getData());
             int count = Integer.valueOf(CommonUtil.hexToTenString(result.getData()));
             if (mintCount == null) {
-                if (count == 0) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return count != 0;
             } else {
                 return count > 0 && count < mintCount;
             }
@@ -2961,11 +2983,7 @@ public class DaoController {
             int count = workService.selectCountMintByAddressAndDaoId(address, dao.getId());
             log.info("[daoMintCount]daoId:{} count :{}", dao.getId(), count);
             if (mintCount == null) {
-                if (count == 0) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return count != 0;
             } else {
                 return count < mintCount;
             }
@@ -3169,13 +3187,10 @@ public class DaoController {
     private Boolean checkMainDaoOwner(Dao dao, String userAddress) {
         if (StringUtils.isNotBlank(dao.getExistDaoId())) {
             Dao mainDao = daoService.daoDetailByProjectId(dao.getExistDaoId());
-            if (mainDao != null && mainDao.getOwnerAddress().equalsIgnoreCase(userAddress)) {
-                return true;
-            }
+            return mainDao != null && mainDao.getOwnerAddress().equalsIgnoreCase(userAddress);
         } else {
             return dao.getOwnerAddress().equalsIgnoreCase(userAddress);
         }
-        return false;
     }
 
 }

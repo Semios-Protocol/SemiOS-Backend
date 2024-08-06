@@ -55,7 +55,7 @@ public class UserInterceptor implements HandlerInterceptor {
         String path = request.getRequestURI().substring(request.getContextPath().length()).replaceAll("[/]+$", "");
         log.info("[UserInterceptor]进入拦截器！path:{}", path);
 
-        if ("OPTIONS".equals(request.getMethod().toUpperCase())) {
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             return true;
         }
         String origin = request.getHeader("Origin");
@@ -105,6 +105,7 @@ public class UserInterceptor implements HandlerInterceptor {
                 }
                 addresssession.setPath("/");
                 addresssession.setMaxAge(0);// 去掉为session级别的cookie
+                addresssession.setSecure(true); // 浏览器安全
                 response.addCookie(addresssession);
                 // throw new LoginException("please login.");
                 return false;

@@ -190,6 +190,7 @@ public class UserController {
             }
             namecookie.setPath("/");
             namecookie.setMaxAge(60 * 60 * 24);
+            namecookie.setSecure(true); // 浏览器安全
             response.addCookie(namecookie);
         } else {
             Cookie namecookie = new Cookie(ProtoDaoConstant.COOKIE_NAME, "");
@@ -205,11 +206,12 @@ public class UserController {
             }
             namecookie.setPath("/");
             namecookie.setMaxAge(0);
+            namecookie.setSecure(true); // 浏览器安全
             response.addCookie(namecookie);
         }
 
         if (StringUtils.isNotBlank(user.getAvatarAddress())) {
-            Cookie avatarcookie = new Cookie(ProtoDaoConstant.COOKIE_AVATAR, user.getAvatarAddress());
+            Cookie avatarcookie = new Cookie(ProtoDaoConstant.COOKIE_AVATAR, CommonUtil.stringCheck(user.getAvatarAddress()));
             if (StringUtils.isEmpty(origin) || !origin.contains(ProtoDaoConstant.LOCAL_HOST)) {
                 if (StringUtils.isNotBlank(origin) && origin.contains(domainUrl)) {
                     avatarcookie.setDomain(domainUrl);
@@ -220,6 +222,7 @@ public class UserController {
             }
             avatarcookie.setPath("/");
             avatarcookie.setMaxAge(60 * 60 * 24);
+            avatarcookie.setSecure(true); // 浏览器安全
             response.addCookie(avatarcookie);
         } else {
             Cookie avatarcookie = new Cookie(ProtoDaoConstant.COOKIE_AVATAR, "");
@@ -233,6 +236,7 @@ public class UserController {
             }
             avatarcookie.setPath("/");
             avatarcookie.setMaxAge(0);
+            avatarcookie.setSecure(true); // 浏览器安全
             response.addCookie(avatarcookie);
         }
 
@@ -248,6 +252,7 @@ public class UserController {
             }
         }
 //        tokenCookie.setDomain(domainUrl);
+        tokenCookie.setSecure(true); // 浏览器安全
         response.addCookie(tokenCookie);
 
         Cookie timeCookie = new Cookie(ProtoDaoConstant.COOKIE_TOKEN_TIME, "0");
@@ -261,6 +266,7 @@ public class UserController {
                 timeCookie.setDomain(domainUrlSemios);
             }
         }
+        timeCookie.setSecure(true); // 浏览器安全
         response.addCookie(timeCookie);
 
         Cookie roleCookie = new Cookie(ProtoDaoConstant.COOKIE_ROLE, user.getRole() + "");
@@ -274,6 +280,7 @@ public class UserController {
                 roleCookie.setDomain(domainUrlSemios);
             }
         }
+        roleCookie.setSecure(true); // 浏览器安全
         response.addCookie(roleCookie);
 
         // Cookie addresscookie = new Cookie(Dao4ArtConstant.COOKIE_ADDRESS, userProfileReqVo.getUserAddress());
@@ -307,6 +314,7 @@ public class UserController {
         }
         addresscookie.setPath("/");
         addresscookie.setMaxAge(60 * 60 * 24);
+        addresscookie.setSecure(true); // 浏览器安全
         response.addCookie(addresscookie);
 
         Cookie addresssession = new Cookie(ProtoDaoConstant.SESSION_ADDRESS, userAddress);
@@ -320,6 +328,7 @@ public class UserController {
         }
         addresssession.setPath("/");
         // addresssession.setMaxAge(0);//去掉为session级别的cookie
+        addresssession.setSecure(true); // 浏览器安全
         response.addCookie(addresssession);
 
         HttpSession session = request.getSession();
@@ -360,26 +369,30 @@ public class UserController {
             namecookie.setDomain(domainUrl);
             namecookie.setPath("/");
             namecookie.setMaxAge(60 * 60 * 24);
+            namecookie.setSecure(true); // 浏览器安全
             response.addCookie(namecookie);
         } else {
             Cookie namecookie = new Cookie(ProtoDaoConstant.COOKIE_NAME, "");
             namecookie.setDomain(domainUrl);
             namecookie.setPath("/");
             namecookie.setMaxAge(0);
+            namecookie.setSecure(true); // 浏览器安全
             response.addCookie(namecookie);
         }
 
         if (StringUtils.isNotBlank(user.getAvatarAddress())) {
-            Cookie avatarcookie = new Cookie(ProtoDaoConstant.COOKIE_AVATAR, user.getAvatarAddress());
+            Cookie avatarcookie = new Cookie(ProtoDaoConstant.COOKIE_AVATAR, CommonUtil.stringCheck(user.getAvatarAddress()));
             avatarcookie.setDomain(domainUrl);
             avatarcookie.setPath("/");
             avatarcookie.setMaxAge(60 * 60 * 24);
+            avatarcookie.setSecure(true); // 浏览器安全
             response.addCookie(avatarcookie);
         } else {
             Cookie avatarcookie = new Cookie(ProtoDaoConstant.COOKIE_AVATAR, "");
             avatarcookie.setDomain(domainUrl);
             avatarcookie.setPath("/");
             avatarcookie.setMaxAge(0);
+            avatarcookie.setSecure(true); // 浏览器安全
             response.addCookie(avatarcookie);
         }
 
@@ -387,24 +400,29 @@ public class UserController {
         tokenCookie.setMaxAge(0);
         tokenCookie.setPath("/");
         tokenCookie.setDomain(domainUrl);
+        tokenCookie.setSecure(true); // 浏览器安全
         response.addCookie(tokenCookie);
 
         Cookie timeCookie = new Cookie(ProtoDaoConstant.COOKIE_TOKEN_TIME, "0");
         timeCookie.setMaxAge(0);
         timeCookie.setPath("/");
         timeCookie.setDomain(domainUrl);
+        timeCookie.setSecure(true); // 浏览器安全
         response.addCookie(timeCookie);
 
         Cookie roleCookie = new Cookie(ProtoDaoConstant.COOKIE_ROLE, user.getRole() + "");
         roleCookie.setMaxAge(60 * 60 * 24);
         roleCookie.setPath("/");
         roleCookie.setDomain(domainUrl);
+        roleCookie.setSecure(true); // 浏览器安全
+        roleCookie.setSecure(true); // 浏览器安全
         response.addCookie(roleCookie);
 
         Cookie addresscookie = new Cookie(ProtoDaoConstant.COOKIE_ADDRESS, userProfileReqVo.getUserAddress());
         addresscookie.setDomain(domainUrl);
         addresscookie.setPath("/");
         addresscookie.setMaxAge(60 * 60 * 24);
+        addresscookie.setSecure(true); // 浏览器安全
         response.addCookie(addresscookie);
 
         return result;
@@ -466,12 +484,14 @@ public class UserController {
             namecookie.setDomain(domainUrlSemios);
             namecookie.setPath("/");
             namecookie.setMaxAge(60 * 60 * 24);
+            namecookie.setSecure(true); // 浏览器安全
             response.addCookie(namecookie);
         } else {
             Cookie namecookie = new Cookie(ProtoDaoConstant.COOKIE_NAME, "");
             namecookie.setDomain(domainUrlSemios);
             namecookie.setPath("/");
             namecookie.setMaxAge(0);
+            namecookie.setSecure(true); // 浏览器安全
             response.addCookie(namecookie);
         }
 
@@ -496,11 +516,12 @@ public class UserController {
                 userProfileVo.setAvatarLink(s3Url);
                 log.info("[user-profile-save] s3AvatarUrl:{}", s3Url);
 
-                Cookie avatarcookie = new Cookie(ProtoDaoConstant.COOKIE_AVATAR, s3Url);
+                Cookie avatarcookie = new Cookie(ProtoDaoConstant.COOKIE_AVATAR, CommonUtil.stringCheck(s3Url));
                 // avatarcookie.setDomain(domainUrl);
                 avatarcookie.setDomain(domainUrlSemios);
                 avatarcookie.setPath("/");
                 avatarcookie.setMaxAge(60 * 60 * 24);
+                avatarcookie.setSecure(true); // 浏览器安全
                 response.addCookie(avatarcookie);
             } catch (Exception e) {
                 log.info("[user-profile-save] avator s3Service error ", e);
@@ -638,6 +659,7 @@ public class UserController {
                     }
                     namecookie.setPath("/");
                     namecookie.setMaxAge(60 * 60 * 24);
+                    namecookie.setSecure(true); // 浏览器安全
                     response.addCookie(namecookie);
                 } else {
                     Cookie namecookie = new Cookie(ProtoDaoConstant.COOKIE_NAME, "");
@@ -651,11 +673,12 @@ public class UserController {
                     }
                     namecookie.setPath("/");
                     namecookie.setMaxAge(0);
+                    namecookie.setSecure(true); // 浏览器安全
                     response.addCookie(namecookie);
                 }
 
                 if (StringUtils.isNotBlank(user.getAvatarAddress())) {
-                    Cookie avatarcookie = new Cookie(ProtoDaoConstant.COOKIE_AVATAR, user.getAvatarAddress());
+                    Cookie avatarcookie = new Cookie(ProtoDaoConstant.COOKIE_AVATAR, CommonUtil.stringCheck(user.getAvatarAddress()));
                     if (StringUtils.isEmpty(origin) || !origin.contains(ProtoDaoConstant.LOCAL_HOST)) {
                         if (StringUtils.isNotBlank(origin) && origin.contains(domainUrl)) {
                             avatarcookie.setDomain(domainUrl);
@@ -666,6 +689,7 @@ public class UserController {
                     }
                     avatarcookie.setPath("/");
                     avatarcookie.setMaxAge(60 * 60 * 24);
+                    avatarcookie.setSecure(true); // 浏览器安全
                     response.addCookie(avatarcookie);
                 } else {
                     Cookie avatarcookie = new Cookie(ProtoDaoConstant.COOKIE_AVATAR, "");
@@ -679,6 +703,7 @@ public class UserController {
                     }
                     avatarcookie.setPath("/");
                     avatarcookie.setMaxAge(0);
+                    avatarcookie.setSecure(true); // 浏览器安全
                     response.addCookie(avatarcookie);
                 }
 
@@ -693,6 +718,7 @@ public class UserController {
                         roleCookie.setDomain(domainUrlSemios);
                     }
                 }
+                roleCookie.setSecure(true); // 浏览器安全
                 response.addCookie(roleCookie);
 
                 Cookie addresscookie = new Cookie(ProtoDaoConstant.COOKIE_ADDRESS, userSignatureReqVo.getUserAddress());
@@ -706,6 +732,7 @@ public class UserController {
                 }
                 addresscookie.setPath("/");
                 addresscookie.setMaxAge(60 * 60 * 24);
+                addresscookie.setSecure(true); // 浏览器安全
                 response.addCookie(addresscookie);
 
                 Cookie addresssession =
@@ -720,6 +747,7 @@ public class UserController {
                 }
                 addresssession.setPath("/");
                 // addresssession.setMaxAge(0);
+                addresssession.setSecure(true); // 浏览器安全
                 response.addCookie(addresssession);
 
             }
@@ -739,6 +767,7 @@ public class UserController {
                     tokenCookie.setDomain(domainUrlSemios);
                 }
             }
+            tokenCookie.setSecure(true); // 浏览器安全
             response.addCookie(tokenCookie);
 
             long localTime = LocalDateTime.now().toInstant(ZoneOffset.of("+8")).getEpochSecond();
@@ -755,6 +784,7 @@ public class UserController {
                     timeCookie.setDomain(domainUrlSemios);
                 }
             }
+            timeCookie.setSecure(true); // 浏览器安全
             response.addCookie(timeCookie);
 
             result.setData(token);
@@ -788,6 +818,7 @@ public class UserController {
         }
         addresssession.setPath("/");
         addresssession.setMaxAge(0);// 去掉为session级别的cookie
+        addresssession.setSecure(true); // 浏览器安全
         response.addCookie(addresssession);
 
         Cookie namecookie = new Cookie(ProtoDaoConstant.COOKIE_NAME, "");
@@ -801,6 +832,7 @@ public class UserController {
                 namecookie.setDomain(domainUrlSemios);
             }
         }
+        namecookie.setSecure(true); // 浏览器安全
         response.addCookie(namecookie);
 
         Cookie avatarcookie = new Cookie(ProtoDaoConstant.COOKIE_AVATAR, "");
@@ -814,6 +846,7 @@ public class UserController {
                 avatarcookie.setDomain(domainUrlSemios);
             }
         }
+        avatarcookie.setSecure(true); // 浏览器安全
         response.addCookie(avatarcookie);
 
         Cookie timeCookie = new Cookie(ProtoDaoConstant.COOKIE_TOKEN_TIME, "");
@@ -827,6 +860,7 @@ public class UserController {
                 timeCookie.setDomain(domainUrlSemios);
             }
         }
+        timeCookie.setSecure(true); // 浏览器安全
         response.addCookie(timeCookie);
 
         Cookie tokenCookie = new Cookie(ProtoDaoConstant.COOKIE_TOKEN, "");
@@ -840,6 +874,7 @@ public class UserController {
                 tokenCookie.setDomain(domainUrlSemios);
             }
         }
+        tokenCookie.setSecure(true); // 浏览器安全
         response.addCookie(tokenCookie);
 
         Cookie addresscookie = new Cookie(ProtoDaoConstant.COOKIE_ADDRESS, "");
@@ -853,6 +888,7 @@ public class UserController {
                 addresscookie.setDomain(domainUrlSemios);
             }
         }
+        addresscookie.setSecure(true); // 浏览器安全
         response.addCookie(addresscookie);
 
         Cookie rolecookie = new Cookie(ProtoDaoConstant.COOKIE_ROLE, "");
@@ -866,6 +902,7 @@ public class UserController {
                 rolecookie.setDomain(domainUrlSemios);
             }
         }
+        addresssession.setSecure(true); // 浏览器安全
         response.addCookie(rolecookie);
 
         HttpSession session = request.getSession();

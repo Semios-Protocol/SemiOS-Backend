@@ -16,10 +16,7 @@ import semios.api.model.entity.Canvas;
 import semios.api.model.entity.Dao;
 import semios.api.model.entity.NodePermissionNft;
 import semios.api.model.entity.Work;
-import semios.api.model.enums.DaoTogetherTypeEnum;
-import semios.api.model.enums.WorkPriceTypeEnum;
-import semios.api.model.enums.WorkStatusEnum;
-import semios.api.model.enums.ZeroNftDescriptionEnum;
+import semios.api.model.enums.*;
 import semios.api.model.vo.req.WorkCreateReqVo;
 import semios.api.service.*;
 import semios.api.utils.CommonUtil;
@@ -140,7 +137,7 @@ public class NewSemiDaoErc721AddressChainService implements SubscriberChainServi
     private Boolean createZeroNft(Dao dao, Canvas canvas, TransactionDto transactionDto) {
         try {
             //上传 图片
-            String imageFileNameAws = "0-nft" + dao.getWorkUrlSuffix();
+            String imageFileNameAws = "0-nft.png";
             String dirStr = String.format(nftImageUrl, dao.getDaoNumber());
             File dirPath = new File(dirStr);
             if (!dirPath.exists()) {
@@ -152,7 +149,7 @@ public class NewSemiDaoErc721AddressChainService implements SubscriberChainServi
 
             //图片添加文字,并写入到刚刚创建的0-nft.png
             String nftImageDefaultUrl = ProtoDaoConstant.nftImageDefaultUrl;
-            ImageUtil.imageAddTextNft(nftImageDefaultUrl, filePath, dao.getDaoName(), dao.getWorkUrlSuffix().substring(1));
+            ImageUtil.imageAddTextNft(nftImageDefaultUrl, filePath, dao.getDaoName(), "png");
 
             String workHash = ImageUtil.getMD5(imageFile);
 
@@ -172,10 +169,12 @@ public class NewSemiDaoErc721AddressChainService implements SubscriberChainServi
             //上传json文件
             String urlPrefix = String.format(ProtoDaoConstant.urlPrefix, ProtoDaoConstant.bucketName);
             try {
-                // 文件上传前的名称 处理图片用
-                s3Service.putImage(ProtoDaoConstant.bucketName + ProtoDaoConstant.workBucketName + "/" + dao.getDaoNumber(), imageFile, imageFileNameAws, true);
+                String nftName = CommonUtil.generateNftName(dao.getOwnerAddress(), dao.getDaoName());
 
-                imageUrl = urlPrefix + ProtoDaoConstant.workBucketName + "/" + dao.getDaoNumber() + "/" + imageFileNameAws;
+                // 文件上传前的名称 处理图片用
+                s3Service.putImage(ProtoDaoConstant.bucketName + ProtoDaoConstant.nftZero + "/" + nftName, imageFile, imageFileNameAws, true);
+
+                imageUrl = urlPrefix + ProtoDaoConstant.nftZero + "/" + nftName + "/" + imageFileNameAws;
                 log.info("[work-create] s3DaoLogoUrl:{}", imageUrl);
             } catch (Exception e) {
                 log.error("[work-create]i:{} upload image error", 0, e);
@@ -186,6 +185,9 @@ public class NewSemiDaoErc721AddressChainService implements SubscriberChainServi
             WorkCreateReqVo workCreateReqVo = new WorkCreateReqVo();
             workCreateReqVo.setImageUrl(imageUrl);
             MintWorkUriDto mintWorkUriDto = MintWorkUriDto.transfer(workCreateReqVo);
+            mintWorkUriDto.setName(dao.getDaoName() + ".0");
+            mintWorkUriDto.setMintedAddress(dao.getOwnerAddress());
+
             String imageName = dao.getDaoNumber() + "-" + 0;
             String fileName = imageName + ".json";
             String s3FileName =
@@ -250,6 +252,14 @@ public class NewSemiDaoErc721AddressChainService implements SubscriberChainServi
 
     // dao 为sub node
     private Boolean insertNodePermission(Dao dao) {
+        // 如果已经存在了，并且交易hash一致，不用重复生成
+        NodePermissionNft nodePermissionInfo = nodePermissionNftService.selectNodePermissionNft(CommonUtil.addHexPrefixIfNotExist(dao.getProjectId()),
+                NodePermissionTypeEnum.Edit_SubNode.getType());
+        if (nodePermissionInfo != null && nodePermissionInfo.getTransactionHash().equalsIgnoreCase(dao.getTransactionHash())) {
+            log.info("[insertNodePermission] dao id:{} transaction:{} nodePermissionInfo is exist", dao.getId(), dao.getTransactionHash());
+            return true;
+        }
+
         Work work = workService.selectWorkByNumber(dao.getId(), "0");
         if (work == null) {
             log.error("[insertNodePermission] dao id():{} workNumber:{} work is null", dao.getId(), 0);

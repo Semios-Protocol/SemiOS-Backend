@@ -77,4 +77,9 @@ public class BasicDaoCreateResVo {
      * createProjectFee
      */
     private Double createProjectFee;
+
+    /**
+     * 0号nft image url
+     */
+    private String zeroNftImageUrl;
 }

@@ -219,6 +219,12 @@
             <version>1.15.3</version> <!-- 替换为你需要的 Jsoup 版本 -->
         </dependency>
 
+        <dependency>
+            <groupId>net.jodah</groupId>
+            <artifactId>expiringmap</artifactId>
+            <version>0.5.10</version>
+        </dependency>
+
     </dependencies>
 
     <profiles>

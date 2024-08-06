@@ -71,6 +71,7 @@ public class ProtoDaoConstant {
     public static String canvasBucketName = "/canvas";
     public static String workBucketName = "/work";
     public static String planBucketName = "/plan";
+    public static String nftZero = "/nftZero";
     public static String metaBucketName = "/meta";
     public static String userBucketName = "/user";
     public static String prbContract;

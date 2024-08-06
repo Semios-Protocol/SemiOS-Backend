@@ -2,6 +2,7 @@ package semios.api.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.web3j.crypto.Hash;
 import org.web3j.crypto.Keys;
 import org.web3j.utils.Numeric;
 import semios.api.model.dto.common.ProtoDaoConstant;
@@ -371,6 +372,26 @@ public class CommonUtil {
         }
 
         return searchNameParamDto;
+    }
+
+
+    /**
+     * 根据dao name和当前登陆用户拼一个保存在aws上的零号nft name
+     *
+     * @param address create dao address
+     * @param daoName create dao name
+     * @return
+     */
+    public static String generateNftName(String address, String daoName) {
+        String hash = Hash.sha3String(daoName);
+        return address.substring(0, 5) + hash.substring(0, 5);
+    }
+
+    public static String stringCheck(String str) {
+        if (StringUtils.isBlank(str)) {
+            return "";
+        }
+        return str;
     }
 
 

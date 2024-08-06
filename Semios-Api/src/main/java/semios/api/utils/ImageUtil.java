@@ -34,6 +34,8 @@ import java.util.Set;
 @Slf4j
 public class ImageUtil {
 
+    private static final String algorithm = "MD5";
+
     public static HeightAndBgColor getImageRgb(MultipartFile multipartFile, String imageHash) {
         // 获取图像的RGB值；
         BufferedImage bufferedImage = null;
@@ -82,9 +84,11 @@ public class ImageUtil {
                     bufferedImage.flush();
                 }
             }
-            if (file.exists()) {
-                if (!path.contains("..") || !path.contains("\\") || path.startsWith("/home/ubuntu/")) {
-                    file.delete();
+            if (!(fileName.contains("..") || fileName.contains("/") || fileName.contains("\\"))) {
+                if (file.exists()) {
+                    if (path.startsWith("/home/ubuntu/dao4art/api/logs/" + imageHash + fileSuffix)) {
+                        file.delete();
+                    }
                 }
             }
         }
@@ -146,7 +150,7 @@ public class ImageUtil {
             // 获取文件的byte信息
             byte[] uploadBytes = file.getBytes();
             // 拿到一个MD5转换器
-            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            MessageDigest md5 = MessageDigest.getInstance(algorithm);
             byte[] digest = md5.digest(uploadBytes);
             // 转换为16进制
             return new BigInteger(1, digest).toString(16);
@@ -159,7 +163,7 @@ public class ImageUtil {
     public static String getMD5(File file) {
         FileInputStream fileInputStream = null;
         try {
-            MessageDigest MD5 = MessageDigest.getInstance("MD5");
+            MessageDigest MD5 = MessageDigest.getInstance(algorithm);
             String path = file.getPath();
             if (path.contains("..") || path.contains("\\") || !path.startsWith("/home/ubuntu/")) {
                 log.error("[getMD5] path is invalid:{}", path);
@@ -354,6 +358,12 @@ public class ImageUtil {
             if (!path.startsWith("/home/ubuntu/dao4art/api/logs/")) {
                 throw new IllegalArgumentException("Invalid filename");
             }
+
+            String filename = file.getName();
+            if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+                throw new IllegalArgumentException("Invalid filename");
+            }
+
             FileUtils.copyInputStreamToFile(multipartFile.getInputStream(), file);
         } catch (Exception e) {
             log.error("[getFileByMultipartFile] error", e);
