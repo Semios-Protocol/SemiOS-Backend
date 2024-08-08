@@ -679,6 +679,56 @@ public class ProtoDaoSchedule {
         log.info("[syncDaoReward] ending...");
     }
 
+//    @Async
+//    @Scheduled(cron = "0 30 0/12 * * ? ")
+//    public void daoRoyaltyFee() throws Exception {
+//        log.info("[daoRoyaltyFee] running...");
+//        String daoId = ProtoDaoConstant.royaltyFeeDao;
+//        if (StringUtils.isBlank(daoId)) {
+//            log.info("[daoRoyaltyFee] daoId is null");
+//            return;
+//        }
+//        Dao dao = daoService.getById(daoId);
+//        if (dao == null) {
+//            log.info("[daoRoyaltyFee] dao is null");
+//            return;
+//        }
+//        // 获取二次交易金额
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.set("user-agent", "Chrome/83.0.4103.116");
+//        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
+//        String queryUrl = "https://api.dune.com/api/v1/query/2665201/results?api_key=kicC9NiRCVIxSyXX0PpiOnUb8x2BUbjs";
+//        ResponseEntity<String> responseEntity =
+//                REST_TEMPLATE.exchange(queryUrl, HttpMethod.GET, httpEntity, String.class);
+//        BigDecimal royaltyFeeIncome = BigDecimal.ZERO;
+//        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+//            log.error("[daoRoyaltyFee] error queryUrl:{} error:{}", queryUrl,
+//                    responseEntity.getBody());
+//            return;
+//        } else {
+//            String resBody = responseEntity.getBody();
+//            log.info("[daoRoyaltyFee] daoId:{} resBody:{}", dao.getId(), resBody);
+//            Map<String, Object> resMap = JacksonUtil.json2map(resBody);
+//            Object result = resMap.get("result");
+//            Map<String, Object> resultMap = JacksonUtil.json2map(JacksonUtil.obj2json(result));
+//            Object rows = resultMap.get("rows");
+//            List<Map> rowsMapList = JacksonUtil.json2list(JacksonUtil.obj2json(rows), Map.class);
+//            String eth = String.valueOf(rowsMapList.get(0).get("eth"));
+//            BigDecimal ethBigDecimal = new BigDecimal(eth);
+//            if (dao.getRoyaltyFee() != null) {
+//                royaltyFeeIncome = ethBigDecimal.multiply(new BigDecimal(dao.getRoyaltyFee()).divide(new BigDecimal(ProtoDaoConstant.RATIO_BASE))).setScale(4, RoundingMode.HALF_UP);
+//            }
+//
+//        }
+//
+//        Dao updateDao = new Dao();
+//        updateDao.setId(dao.getId());
+//        updateDao.setRoyaltyFeeIncome(royaltyFeeIncome);
+//        log.info("[daoRoyaltyFee] daoId:{} royaltyFeeIncome:{}", dao.getId(), royaltyFeeIncome);
+//        daoService.updateById(updateDao);
+//
+//    }
+
     //    @Async
     //    @Scheduled(cron = "0/30 * * * * ? ")
     @Deprecated
@@ -715,56 +765,6 @@ public class ProtoDaoSchedule {
                 }
             }
         }
-    }
-
-    @Async
-    @Scheduled(cron = "0 30 0/12 * * ? ")
-    public void daoRoyaltyFee() throws Exception {
-        log.info("[daoRoyaltyFee] running...");
-        String daoId = ProtoDaoConstant.royaltyFeeDao;
-        if (StringUtils.isBlank(daoId)) {
-            log.info("[daoRoyaltyFee] daoId is null");
-            return;
-        }
-        Dao dao = daoService.getById(daoId);
-        if (dao == null) {
-            log.info("[daoRoyaltyFee] dao is null");
-            return;
-        }
-        // 获取二次交易金额
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("user-agent", "Chrome/83.0.4103.116");
-        HttpEntity<String> httpEntity = new HttpEntity<>(headers);
-        String queryUrl = "https://api.dune.com/api/v1/query/2665201/results?api_key=kicC9NiRCVIxSyXX0PpiOnUb8x2BUbjs";
-        ResponseEntity<String> responseEntity =
-                REST_TEMPLATE.exchange(queryUrl, HttpMethod.GET, httpEntity, String.class);
-        BigDecimal royaltyFeeIncome = BigDecimal.ZERO;
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            log.error("[daoRoyaltyFee] error queryUrl:{} error:{}", queryUrl,
-                    responseEntity.getBody());
-            return;
-        } else {
-            String resBody = responseEntity.getBody();
-            log.info("[daoRoyaltyFee] daoId:{} resBody:{}", dao.getId(), resBody);
-            Map<String, Object> resMap = JacksonUtil.json2map(resBody);
-            Object result = resMap.get("result");
-            Map<String, Object> resultMap = JacksonUtil.json2map(JacksonUtil.obj2json(result));
-            Object rows = resultMap.get("rows");
-            List<Map> rowsMapList = JacksonUtil.json2list(JacksonUtil.obj2json(rows), Map.class);
-            String eth = String.valueOf(rowsMapList.get(0).get("eth"));
-            BigDecimal ethBigDecimal = new BigDecimal(eth);
-            if (dao.getRoyaltyFee() != null) {
-                royaltyFeeIncome = ethBigDecimal.multiply(new BigDecimal(dao.getRoyaltyFee()).divide(new BigDecimal(ProtoDaoConstant.RATIO_BASE))).setScale(4, RoundingMode.HALF_UP);
-            }
-
-        }
-
-        Dao updateDao = new Dao();
-        updateDao.setId(dao.getId());
-        updateDao.setRoyaltyFeeIncome(royaltyFeeIncome);
-        log.info("[daoRoyaltyFee] daoId:{} royaltyFeeIncome:{}", dao.getId(), royaltyFeeIncome);
-        daoService.updateById(updateDao);
-
     }
 
     /**
@@ -834,7 +834,7 @@ public class ProtoDaoSchedule {
             // }
 
             try {
-                Thread.sleep(1000 * 1);
+                Thread.sleep(1000);
                 Integer tokenHolders = commonService.tokenHolders(dao.getErc20Token());
                 if (!tokenHolders.equals(dao.getTokenHolders())) {
                     Dao updateDao = new Dao();
@@ -1210,7 +1210,7 @@ public class ProtoDaoSchedule {
 
         for (String erc20 : erc20Map.keySet()) {
             Dao dao = erc20Map.get(erc20);
-            // todo异步订阅
+            // 异步订阅
             Subscribe subscribe2 = new Subscribe();
             subscribe2.setContractAddress(dao.getErc20Token());
             subscribe2.setTopics(ContractMethodEnum.PROJECT_TRANSFER.getMethodAddress());
@@ -1250,7 +1250,7 @@ public class ProtoDaoSchedule {
 
         for (String erc721 : erc21Map.keySet()) {
             Dao dao = erc21Map.get(erc721);
-            // todo异步订阅
+            // 异步订阅
             Subscribe subscribe = new Subscribe();
             subscribe.setContractAddress(dao.getErc721Token());
             subscribe.setTopics(ContractMethodEnum.PROJECT_TRANSFER.getMethodAddress());
@@ -1317,7 +1317,7 @@ public class ProtoDaoSchedule {
 
         for (String projectId : projectIdMap.keySet()) {
             Dao dao = projectIdMap.get(projectId);
-            // todo异步订阅
+            // 异步订阅
             Subscribe subscribe = new Subscribe();
             subscribe.setContractAddress(ContractMethodEnum.GET_DAO_CURRENT_ROUND.getContractAddress());
             subscribe.setTopics(ContractMethodEnum.GET_DAO_CURRENT_ROUND.getMethodAddress() + dao.getProjectId());

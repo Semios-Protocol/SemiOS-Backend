@@ -194,7 +194,7 @@ public enum TradeTypeEnum {
         if (tradeTypeEnum == null || StringUtils.isBlank(value)) {
             return;
         }
-        // TODO 设置常量,但是该相关合约已经没有，需要重新定义逻辑..
+        //  设置常量,但是该相关合约已经没有，需要重新定义逻辑..
         if (TradeTypeEnum.CURRENT_ROUND_LOCAL.equals(tradeTypeEnum)) {
             log.info("[TradeTypeEnum]CURRENT_ROUND_LOCAL:{}", value);
             ProtoDaoConstant.CURRENT_ROUND = value;

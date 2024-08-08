@@ -111,11 +111,11 @@ public class PlanCurrentRoundChainService implements SubscriberChainService {
         } else {
             // 当前周期数>总周期,已结束
             updatePlan.setIncentiveStatus(PlanStatusEnum.FINISHED.getBasicType());
-            // TODO 已经结束的，是否需要删除调订阅服务的订阅...
+            //  已经结束的，是否需要删除调订阅服务的订阅...
         }
 
         // 获取decimal
-        // TODO decimal要使用plan的decimal
+        // decimal要使用plan的decimal
         // Integer decimal = Integer.valueOf(commonService.erc20Decimals(dao.getErc20Token()));
         Integer decimal = incentivePlan.getRewardTokenDecimal();
 

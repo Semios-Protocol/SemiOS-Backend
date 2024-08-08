@@ -24,12 +24,12 @@ public class TogetherDaoMakerVo implements Serializable {
     /**
      * 还没花费的ETH加和
      */
-    private String noSpendEthAmount;
+    private String noSpendEthAmount = "0";
 
     /**
      * 还没花费的Token加和
      */
-    private String noSpendTokenAmount;
+    private String noSpendTokenAmount = "0";
 
 
 }

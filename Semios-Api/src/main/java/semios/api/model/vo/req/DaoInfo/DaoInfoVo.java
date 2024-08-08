@@ -4,7 +4,9 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import semios.api.model.entity.Dao;
+import semios.api.model.vo.res.TogetherDaoMakerVo;
 import semios.api.service.IDaoService;
+import semios.api.service.IWorkTopupHarvestService;
 import semios.api.utils.CommonUtil;
 import semios.api.utils.SpringBeanUtil;
 
@@ -115,10 +117,28 @@ public class DaoInfoVo implements Serializable {
      */
     private Integer daoStatus;
 
+    /**
+     * 是否为MainDAO 0-否 1-是
+     * 1-SeedNodes
+     * 0-SubNodes
+     */
+    private Integer isAncestorDao;
 
-    public static DaoInfoVo transfer(Dao dao,List<Integer> favoritesIds) {
+    /**
+     * 聚合dao id，用来调用maker信息
+     */
+    private Integer togetherDaoId;
+
+    /**
+     * maker信息
+     */
+    private TogetherDaoMakerVo togetherDaoMakerVo;
+
+
+    public static DaoInfoVo transfer(Dao dao, List<Integer> favoritesIds) {
         IDaoService daoService = SpringBeanUtil.getBean(IDaoService.class);
-        if (daoService==null){
+        IWorkTopupHarvestService workTopupHarvestService = SpringBeanUtil.getBean(IWorkTopupHarvestService.class);
+        if (daoService == null || workTopupHarvestService == null) {
             log.info("dao service is null");
             return new DaoInfoVo();
         }
@@ -152,11 +172,15 @@ public class DaoInfoVo implements Serializable {
         daoDetailVo.setDaoSymbol(dao.getDaoSymbol());
         daoDetailVo.setDaoErc20Address(CommonUtil.addHexPrefixIfNotExist(dao.getErc20Token()));
         daoDetailVo.setDaoStatus(dao.getDaoStatus());
+        daoDetailVo.setIsAncestorDao(dao.getIsAncestordao());
+        daoDetailVo.setTogetherDaoId(dao.getTogetherDaoId());
+
+        String existDaoId = StringUtils.isBlank(togetherDao.getExistDaoId()) ? togetherDao.getProjectId() : togetherDao.getExistDaoId();
+        TogetherDaoMakerVo togetherDaoMakerVo = workTopupHarvestService.getTogetherDaoMakerVo(existDaoId);
+        daoDetailVo.setTogetherDaoMakerVo(togetherDaoMakerVo);
+
         return daoDetailVo;
     }
-
-
-
 
 
     public static void main(String[] args) {

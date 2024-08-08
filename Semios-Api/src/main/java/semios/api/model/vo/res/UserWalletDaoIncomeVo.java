@@ -461,7 +461,7 @@ public class UserWalletDaoIncomeVo {
                                 .divide(daoDrbStatistics.getDaoReward()
                                         .subtract(
                                                 new BigDecimal(String.valueOf(dao.getSwapToken() == null ? 0 : dao.getSwapToken())))
-                                        .subtract(canvsSwopToken), 18, BigDecimal.ROUND_FLOOR)
+                                        .subtract(canvsSwopToken), 18, RoundingMode.FLOOR)
                                 .multiply(daoDrbStatistics.getDaoAssetPool());
                     }
 
@@ -470,7 +470,7 @@ public class UserWalletDaoIncomeVo {
             return BigDecimal.ZERO;
         }
 
-        return tokenAmount.divide(dao.getUnchangedTokenAmount(), 18, BigDecimal.ROUND_FLOOR)
+        return tokenAmount.divide(dao.getUnchangedTokenAmount(), 18, RoundingMode.FLOOR)
                 .multiply(dao.getDaoAssetPool());
     }
 
@@ -734,7 +734,7 @@ public class UserWalletDaoIncomeVo {
             /** BigDecimal除法取余数 */
             sb = sb.append(b[n.remainder(sixteen).intValue()]);
             /** BigDecimal除法,省略小数点后的位数且不进位 */
-            n = n.divide(sixteen, 0, BigDecimal.ROUND_DOWN);
+            n = n.divide(sixteen, 0, RoundingMode.DOWN);
         }
         a = sb.reverse().toString();
         return a;

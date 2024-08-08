@@ -1000,7 +1000,7 @@ public class CreateProjectParamEmittedFourChainService implements SubscriberChai
                         whiteList = new WhiteList();
                         whiteList.setUserAddress(dao.getOwnerAddress());
                         String originAddress = dao.getOwnerAddress();
-                        List<String> list = Arrays.asList(originAddress);
+                        List<String> list = Collections.singletonList(originAddress);
                         MerkleTree mt = new MerkleTree(list);
                         mt.init();
                         String rootHash = mt.getRootHash();
@@ -1338,7 +1338,7 @@ public class CreateProjectParamEmittedFourChainService implements SubscriberChai
     }
 
     private void subscribeForNewProject(Dao dao, TransactionDto transactionDto) {
-        // todo异步订阅
+        // 异步订阅
         List<Subscribe> subscribeList = subscribeService.selectAll();
         Subscribe subscribe1 =
                 subscribeList.stream().filter(v -> TradeTypeEnum.D4A_MINTNFT.getType().equals(v.getTradeType())
@@ -1384,7 +1384,7 @@ public class CreateProjectParamEmittedFourChainService implements SubscriberChai
         log.info("subscribeForNewProject save subscribe:" + JacksonUtil.obj2json(subscribe));
         subscribeService.save(subscribe);
 
-        // todo异步订阅
+        // 异步订阅
         Subscribe subscribe2 = new Subscribe();
         subscribe2.setContractAddress(dao.getErc20Token());
         subscribe2.setTopics(ContractMethodEnum.PROJECT_TRANSFER.getMethodAddress());
@@ -1427,7 +1427,7 @@ public class CreateProjectParamEmittedFourChainService implements SubscriberChai
             subscribeService.save(subscribe2);
         }
 
-        // todo异步订阅  getDaoCurrentRound
+        // 异步订阅  getDaoCurrentRound
         Subscribe subscribe3 = new Subscribe();
         subscribe3.setContractAddress(ContractMethodEnum.GET_DAO_CURRENT_ROUND.getContractAddress());
         subscribe3.setTopics(ContractMethodEnum.GET_DAO_CURRENT_ROUND.getMethodAddress() + dao.getProjectId());

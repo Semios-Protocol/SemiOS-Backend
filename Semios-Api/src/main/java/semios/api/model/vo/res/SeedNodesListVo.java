@@ -10,6 +10,7 @@ import semios.api.model.enums.WorkStatusEnum;
 import semios.api.service.ICanvasService;
 import semios.api.service.IDaoService;
 import semios.api.service.IWorkService;
+import semios.api.service.IWorkTopupHarvestService;
 import semios.api.utils.CommonUtil;
 import semios.api.utils.SpringBeanUtil;
 
@@ -104,6 +105,27 @@ public class SeedNodesListVo implements Serializable {
      */
     private Integer inputTokenDecimals;
 
+    /**
+     * dao output token symbol
+     */
+    private String daoSymbol;
+
+    /**
+     * dao output token symbol
+     */
+    private String erc20Address;
+
+    /**
+     * dao output token symbol
+     */
+    private String daoErc20Address;
+
+
+    /**
+     * maker信息
+     */
+    private TogetherDaoMakerVo togetherDaoMakerVo;
+
     public static SeedNodesListVo transfer(Dao dao) {
         SeedNodesListVo daoDetailVo = new SeedNodesListVo();
         daoDetailVo.setDaoId(dao.getId());
@@ -130,7 +152,12 @@ public class SeedNodesListVo implements Serializable {
         daoDetailVo.setInputTokenAddress(CommonUtil.addHexPrefixIfNotExist(dao.getInputTokenAddress()));
         daoDetailVo.setInputTokenDecimals(dao.getInputTokenDecimals());
 
+        daoDetailVo.setDaoSymbol(dao.getDaoSymbol());
+        daoDetailVo.setErc20Address(CommonUtil.addHexPrefixIfNotExist(dao.getErc20Token()));
+        daoDetailVo.setDaoErc20Address(CommonUtil.addHexPrefixIfNotExist(dao.getErc20Token()));
+
         daoDetailVo.setTogetherDaoMemberVo(getTogetherDaoMemberVo(dao.getId()));
+        daoDetailVo.setTogetherDaoMakerVo(getTogetherDaoMakerVo(StringUtils.isBlank(dao.getExistDaoId()) ? dao.getProjectId() : dao.getExistDaoId()));
         return daoDetailVo;
     }
 
@@ -162,6 +189,16 @@ public class SeedNodesListVo implements Serializable {
         togetherDaoMemberVo.setErc20Holders(daoList.isEmpty() ? 0 : daoList.get(0).getTokenHolders());
 
         return togetherDaoMemberVo;
+    }
+
+
+    private static TogetherDaoMakerVo getTogetherDaoMakerVo(String existDaoId) {
+        IWorkTopupHarvestService workTopupHarvestService = SpringBeanUtil.getBean(IWorkTopupHarvestService.class);
+        if (workTopupHarvestService == null) {
+            log.info("workTopupHarvestService service is null");
+            return new TogetherDaoMakerVo();
+        }
+        return workTopupHarvestService.getTogetherDaoMakerVo(existDaoId);
     }
 
     public static void main(String[] args) {

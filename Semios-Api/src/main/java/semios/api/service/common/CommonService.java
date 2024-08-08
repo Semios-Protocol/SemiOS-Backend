@@ -1026,13 +1026,13 @@ public class CommonService {
             }
             // 如果dao的work url 为默认，，生成pass卡。。且图片上有数字--->当dao图片修改，这个图片需要修改
             // 如果不为默认，需要用dao的work url，图片上没有数字--->当dao图片修改，这个图片需要修改
-            // TODO:直接用dao 的图片？没哟与数字..，不好区分
-            // TODO:生成，在更新dao的时候不用修改?
+            // 直接用dao 的图片？没哟与数字..，不好区分
+            // 生成，在更新dao的时候不用修改?
             // 如果pass卡图片被修改，在更新dao图片的时候就不用修改了
             // 生成时候的问题，，修改时候的问题..
 
-            // TODO：如果不做调整，修改dao之后，图片为什么被替换掉
-            // TODO：如果不做调整，修改dao之后，如果判断图片是否被修改？
+            // 如果不做调整，修改dao之后，图片为什么被替换掉
+            // 如果不做调整，修改dao之后，如果判断图片是否被修改？
 
             String workName = "work" + workNumber;
 //            String workName = workNumber == null ? null : "work" + workNumber;
@@ -1075,7 +1075,7 @@ public class CommonService {
             WorkCreateReqVo workCreateReqVo = new WorkCreateReqVo();
             workCreateReqVo.setImageUrl(imageUrl);
             MintWorkUriDto mintWorkUriDto = MintWorkUriDto.transfer(workCreateReqVo);
-            String imageName = dao.getDaoNumber() + "-" + workNumber + "";
+            String imageName = dao.getDaoNumber() + "-" + workNumber;
             String fileName = imageName + ".json";
             String s3FileName =
                     urlPrefix + ProtoDaoConstant.metaBucketName + ProtoDaoConstant.workBucketName + "/" + fileName;
