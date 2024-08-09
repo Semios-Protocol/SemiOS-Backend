@@ -130,7 +130,7 @@ public class IncentivePlanController {
             Date yesterday = DateUtil.addDay(new Date(), -1);
             LocalDate dateParam = LocalDate.parse(sdf.format(yesterday), df);
             String yesterdayTime = DateUtil.getThisDayBeginTime(dateParam);
-            String yesterdayBlockNo = ProtoDaoCommonUtil.timestampBlockNo(new BigDecimal(yesterdayTime).divide(new BigDecimal("1000"), 0, BigDecimal.ROUND_UP).toPlainString());
+            String yesterdayBlockNo = ProtoDaoCommonUtil.timestampBlockNo(new BigDecimal(yesterdayTime).divide(new BigDecimal("1000"), 0, RoundingMode.UP).toPlainString());
             log.info("[createBasicDao] yesterdayTime:{} yesterdayBlockNo:{} ", yesterdayTime, yesterdayBlockNo);
             if (StringUtils.isNotBlank(yesterdayBlockNo)) {
 
@@ -264,7 +264,7 @@ public class IncentivePlanController {
     @PostMapping(value = "/together/list")
     public ResultList<PlanListVo> togetherPlanList(@RequestBody DaoIdParam daoIdParam,
                                                    HttpServletRequest request) {
-        // TODO 1.8.1 添加字段
+        // 1.8.1 添加字段
         ResultList<PlanListVo> result = new ResultList<>();
 
         Dao dao = daoService.getById(daoIdParam.getDaoId());
@@ -322,7 +322,7 @@ public class IncentivePlanController {
     @PostMapping(value = "/basic/info")
     public Result<PlanBasicInfoVo> planBaseInfo(@RequestBody PlanIdReqVo planIdReqVo,
                                                 HttpServletRequest request) {
-        // TODO 1.8.1 添加字段
+        //  1.8.1 添加字段
         Result<PlanBasicInfoVo> result = new Result<>();
         IncentivePlan incentivePlan = incentivePlanService.getById(planIdReqVo.getPlanId());
         if (incentivePlan == null) {

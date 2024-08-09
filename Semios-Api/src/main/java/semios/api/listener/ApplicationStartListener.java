@@ -115,12 +115,12 @@ public class ApplicationStartListener implements CommandLineRunner {
                 }
             }
 
-            // TODO 对current_round写死
+            // 对current_round写死
             // 原来对版本是合约统一周期，现在每个dao都有自己对周期，而且，这个合约已经删除
             ProtoDaoConstant.CURRENT_ROUND = "1";
             //赋值给Dao4ArtConstant.NEXT_DRB_START_BLOCK
             if (StringUtils.isNotBlank(ProtoDaoConstant.CURRENT_ROUND)) {
-                // TODO 写死的值，待确认
+                // 写死的值，待确认
                 ProtoDaoConstant.NEXT_DRB_START_BLOCK = Integer.valueOf("1000000");
                 //commonService.handleNextDrbStartBlock(Integer.valueOf(ProtoDaoConstant.CURRENT_ROUND));
             }

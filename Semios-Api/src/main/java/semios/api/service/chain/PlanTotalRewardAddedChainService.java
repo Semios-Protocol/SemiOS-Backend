@@ -80,7 +80,7 @@ public class PlanTotalRewardAddedChainService implements SubscriberChainService 
         updateIncentivePlan.setId(incentivePlan.getId());
 
         // 获取decimal
-        // TODO 使用plan的decimal
+        // 使用plan的decimal
         // Integer decimal = Integer.valueOf(commonService.erc20Decimals(dao.getErc20Token()));
         Integer decimal = incentivePlan.getRewardTokenDecimal();
         BigDecimal incentiveAmount = new BigDecimal(totalReward).divide(CommonUtil.getPowBigDecimal(decimal), 18, RoundingMode.HALF_UP);

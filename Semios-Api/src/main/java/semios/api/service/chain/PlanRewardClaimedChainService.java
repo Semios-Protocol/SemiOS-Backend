@@ -75,7 +75,7 @@ public class PlanRewardClaimedChainService implements SubscriberChainService {
             throw new RuntimeException("PlanRewardClaimedChainService cannot find work");
         }
 
-        // TODO 使用plan的decimal
+        // 使用plan的decimal
         // Integer decimal = Integer.valueOf(commonService.erc20Decimals(dao.getErc20Token()));
         Integer decimal = incentivePlan.getRewardTokenDecimal();
         log.info("[PlanRewardClaimedChainService] decimal:{}", decimal);

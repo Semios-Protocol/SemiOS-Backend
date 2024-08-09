@@ -214,7 +214,6 @@ public class NewSemiOsPlanChainService implements SubscriberChainService {
         }
 
 
-        // TODO 需要调整....
         BigDecimal incentiveAmount = null;
         if (totalReward != null) {
             incentiveAmount = new BigDecimal(totalReward).divide(CommonUtil.getPowBigDecimal(incentivePlan.getRewardTokenDecimal()), 18, RoundingMode.HALF_UP);
@@ -306,7 +305,6 @@ public class NewSemiOsPlanChainService implements SubscriberChainService {
     }
 
     private void subscribeForNewProject(IncentivePlan incentivePlan, TransactionDto transactionDto) {
-        // todo异步订阅
         List<Subscribe> subscribeList = subscribeService.selectAll();
 
         // 根据current来获取receive address
@@ -314,7 +312,7 @@ public class NewSemiOsPlanChainService implements SubscriberChainService {
                 subscribeList.stream().filter(v -> TradeTypeEnum.CURRENT_ROUND.getType().equals(v.getTradeType())
                         && StringUtils.isNotBlank(v.getReceiveAddress())).findFirst().orElse(new Subscribe());
 
-        // todo异步订阅  getPlanCurrentRound
+        // 异步订阅  getPlanCurrentRound
         Subscribe subscribe = new Subscribe();
         subscribe.setContractAddress(ContractMethodEnum.GET_PLAN_CURRENT_ROUND.getContractAddress());   // 合约要调整
         subscribe.setTopics(ContractMethodEnum.GET_PLAN_CURRENT_ROUND.getMethodAddress() + incentivePlan.getPlanCode());

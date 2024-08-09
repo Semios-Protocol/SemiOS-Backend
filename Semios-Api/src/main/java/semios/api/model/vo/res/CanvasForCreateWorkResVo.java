@@ -179,6 +179,11 @@ public class CanvasForCreateWorkResVo {
      */
     private String daoSymbol;
 
+    /**
+     * 是否开启了TopUp模式 0-否 1-是
+     */
+    private Integer topupMode;
+
     public static CanvasForCreateWorkResVo transfer(Dao dao, Canvas canvas, Page<Work> workPage) {
         List<String> workPictures = workPage.getRecords().stream().map(Work::getImageUrl).collect(Collectors.toList());
         // int size = workPictures.size();
@@ -242,6 +247,7 @@ public class CanvasForCreateWorkResVo {
         canvasForCreateWorkResVo.setInputTokenDecimals(dao.getInputTokenDecimals());
         canvasForCreateWorkResVo.setInputTokenAddress(CommonUtil.addHexPrefixIfNotExist(dao.getInputTokenAddress()));
         canvasForCreateWorkResVo.setDaoSymbol(dao.getDaoSymbol());
+        canvasForCreateWorkResVo.setTopupMode(dao.getTopupMode());
         return canvasForCreateWorkResVo;
     }
 }
