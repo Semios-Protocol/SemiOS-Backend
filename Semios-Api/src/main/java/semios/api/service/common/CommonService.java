@@ -1720,11 +1720,12 @@ public class CommonService {
     public BasicInformationVo getBasicInformationVo(Dao dao) {
 
         BasicInformationVo basicInformationVo = new BasicInformationVo();
-        Integer nftAmount = workService.selectNftAmounts(dao.getId() + "");
+        // Integer nftAmount = workService.selectNftAmounts(dao.getId() + "");
+        Integer nftAmount = workService.selectNftAmountsExceptZeroNft(dao.getId() + "");
         basicInformationVo.setMintCap(nftAmount);
         basicInformationVo.setTotalMintCap(dao.getTotalNftCasting());
         if (StringUtils.isNotBlank(dao.getCurrentRound())) {
-            Integer nftCurrentAmount = workService.selectDrbNftCountByDaoId(dao.getId() + "", Integer.valueOf(dao.getCurrentRound()));
+            Integer nftCurrentAmount = workService.selectDrbNftCountByDaoIdExceptZeroNft(dao.getId() + "", Integer.valueOf(dao.getCurrentRound()));
             basicInformationVo.setMintWindowCap(nftCurrentAmount);
         }
         basicInformationVo.setTotalMintWindowCap(dao.getDailyMintCap());

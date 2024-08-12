@@ -203,7 +203,7 @@ public interface WorkMapper extends BaseMapper<Work> {
             "  left join (select * from  work_topup_harvest where project_id=#{projectId}) wth on wth.mount_work_id = w.id " +
             "   left join dao d on d.id=w.dao_id " +
             " order by ethAmount desc,erc20Amount desc,w.block_time desc")
-    Page<MineNftVo> selectWorkMintTopUp(IPage<Work> page, String address,String projectId);
+    Page<MineNftVo> selectWorkMintTopUp(IPage<Work> page, String address, String projectId);
 
     // 账户mint not topup work筛选的，查询在当前dao下有mount_work是我的
     @Select("select w.id as workID,w.work_number,w.dao_id,d.dao_name,w.dao_number,w.canvas_number,d.erc721_token as erc721TokenAddress, " +
@@ -212,7 +212,7 @@ public interface WorkMapper extends BaseMapper<Work> {
             " left join work w on t.mount_work_id=w.id " +
             " left join dao d on w.dao_id = d.id " +
             " where w.work_status=1 and w.owner_address=#{address} group by w.id order by ethAmount desc,erc20Amount desc,w.block_time desc ")
-    Page<MineNftVo> selectWorkMintNotTopUp(IPage<Work> page, String address,String projectId);
+    Page<MineNftVo> selectWorkMintNotTopUp(IPage<Work> page, String address, String projectId);
 
     // work详情下..查询谁绑定了我，按照dao分组并求和
     @Select("select d.id as daoId,d.dao_name,t.eth_amount as ethBalance,t.erc20_amount as tokenBalance,d.together_dao_id as togetherDaoId,d.pay_currency_type,d.input_token_address, d.input_token_decimals ,d.dao_symbol,d.erc20_token as daoErc20Address from " +
@@ -225,17 +225,23 @@ public interface WorkMapper extends BaseMapper<Work> {
 
     // 修改work未铸造且是默认图片的url
     @Update("update work set image_url=#{newImageUrl} where dao_id=#{daoId} and work_status=0 and image_url=#{oldImageUrl}")
-    void updateWorkUrl(Integer daoId,String oldImageUrl,String newImageUrl);
+    void updateWorkUrl(Integer daoId, String oldImageUrl, String newImageUrl);
 
     @Update("update work set image_url=#{newImageUrl} where dao_id=#{daoId} and work_status=0 and generate=1")
-    void updatePassCardUrl(Integer daoId,String newImageUrl);
+    void updatePassCardUrl(Integer daoId, String newImageUrl);
 
     @Select("select *,\n" + "case\n" + "when work_hash = #{searchId} then 3\n"
             + "when creator_address like concat('%', #{searchId}, '%') then 2\n"
             + "when work_description like concat('%', #{searchId}, '%') then 1\n" + "end as ord\n"
             + "from `work` where is_del = 0 and work_status !=2 and (creator_address like concat('%', #{searchId}, '%') or work_description like concat('%', #{searchId}, '%') or work_hash = #{searchId}) order by ord desc,block_time desc ")
-    Page<Work> searchWork(IPage<Work> page,String searchId);
+    Page<Work> searchWork(IPage<Work> page, String searchId);
 
     @Select("select * from `work` where transaction_hash=#{transactionHash} and is_del=0 limit 1")
     Work selectWorkByTransactionHash(String transactionHash);
+
+    @Select("select count(id) from `work` where is_del = 0 and dao_id = #{daoId} and work_status = 1 and generate!=3 ")
+    Integer selectNftAmountsExceptZeroNft(String daoId);
+
+    @Select("select count(*) from `work` where is_del = 0 and dao_id = #{daoId} and work_status = 1 and drb_number = #{drb} and generate!=3 ")
+    int selectDrbNftCountByDaoIdExceptZeroNft(String daoId, Integer drb);
 }
