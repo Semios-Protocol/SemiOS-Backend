@@ -3,10 +3,13 @@ package semios.api.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import semios.api.model.dto.common.Result;
 import semios.api.model.dto.response.NewProjectUriDto;
 import semios.api.model.entity.*;
 import semios.api.model.vo.req.DaoEditReqVo;
+import semios.api.model.vo.req.DaoIdReqVo;
 import semios.api.model.vo.req.DaoSortedReqVo;
+import semios.api.model.vo.res.DaoExportInfo.DaoExportInfoVo;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -27,7 +30,7 @@ public interface IDaoService extends IService<Dao> {
 
     List<Dao> searchDao(String searchId);
 
-    Page<Dao> searchDao(IPage<Dao> page,String searchId);
+    Page<Dao> searchDao(IPage<Dao> page, String searchId);
 
     List<Dao> selectDaoByIds(List<Integer> ids);
 
@@ -134,4 +137,7 @@ public interface IDaoService extends IService<Dao> {
     Page<Dao> getCollectionsDaoList(IPage<Dao> page, DaoSortedReqVo daoSortedReqVo);
 
     Page<Dao> getDaoListByTogetherDaoId(IPage<Dao> page, String togetherDaoId);
+
+    // 导出dao信息
+    Result<DaoExportInfoVo> daoExportInfo(DaoIdReqVo daoIdReqVo);
 }

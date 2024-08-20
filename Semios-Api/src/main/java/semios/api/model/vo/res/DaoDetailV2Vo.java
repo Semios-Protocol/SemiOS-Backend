@@ -329,48 +329,12 @@ public class DaoDetailV2Vo implements Serializable {
      */
     private String daoSymbol;
 
-
-    public void setDaoAssetPool(Float daoAssetPool) {
-        if (daoAssetPool != null) {
-            this.daoAssetPool = daoAssetPool;
-        }
-    }
-
-    public void setWorkNumber(Integer workNumber) {
-        if (workNumber != null) {
-            this.workNumber = workNumber;
-        }
-    }
-
-    public void setNftNumber(Integer nftNumber) {
-        if (nftNumber != null) {
-            this.nftNumber = nftNumber;
-        }
-    }
-
-    public void setFavoriteAmount(Integer favoriteAmount) {
-        if (favoriteAmount != null) {
-            this.favoriteAmount = favoriteAmount;
-        }
-    }
-
-    public void setDaoToken(Long daoToken) {
-        if (daoToken != null) {
-            this.daoToken = daoToken;
-        }
-    }
-
-    public void setMintRevenue(Double mintRevenue) {
-        if (mintRevenue != null) {
-            this.mintRevenue = mintRevenue;
-        }
-    }
-
-    public void setTotalNftCasting(Integer totalNftCasting) {
-        if (totalNftCasting != null) {
-            this.totalNftCasting = totalNftCasting;
-        }
-    }
+    /**
+     * 是否为MainDAO 0-否 1-是
+     * 1-SeedNodes
+     * 0-SubNodes
+     */
+    private Integer isAncestorDao;
 
     public static DaoDetailV2Vo transfer(Dao dao, DaoDrbStatistics daoDrbStatistics) {
         DaoDetailV2Vo daoDetailVo = new DaoDetailV2Vo();
@@ -408,6 +372,7 @@ public class DaoDetailV2Vo implements Serializable {
         daoDetailVo.setInputTokenAddress(CommonUtil.addHexPrefixIfNotExist(dao.getInputTokenAddress()));
         daoDetailVo.setInputTokenDecimals(dao.getInputTokenDecimals());
         daoDetailVo.setDaoSymbol(dao.getDaoSymbol());
+        daoDetailVo.setIsAncestorDao(dao.getIsAncestordao());
 
         if (DaoStatusEnum.NOT_STARTED.getStatus().equals(dao.getDaoStatus())) {
             LocalDate startDate = dao.getDaoStartDate();
@@ -445,10 +410,9 @@ public class DaoDetailV2Vo implements Serializable {
 //            }
 //        }
         CommonService commonService = SpringBeanUtil.getBean(CommonService.class);
-        if (commonService != null){
-           daoDetailVo.setDaoAssetPool(ProtoDaoCommonUtil.bigdecimalToFloat(commonService.getInputToken(dao)));
+        if (commonService != null) {
+            daoDetailVo.setDaoAssetPool(ProtoDaoCommonUtil.bigdecimalToFloat(commonService.getInputToken(dao)));
         }
-
 
 
         daoDetailVo.setRoyaltyFee(
@@ -526,5 +490,47 @@ public class DaoDetailV2Vo implements Serializable {
 //        System.out.println(startDateTime);
 //        System.out.println(localTime);
 //        System.out.println(startDateTime - localTime);
+    }
+
+    public void setDaoAssetPool(Float daoAssetPool) {
+        if (daoAssetPool != null) {
+            this.daoAssetPool = daoAssetPool;
+        }
+    }
+
+    public void setWorkNumber(Integer workNumber) {
+        if (workNumber != null) {
+            this.workNumber = workNumber;
+        }
+    }
+
+    public void setNftNumber(Integer nftNumber) {
+        if (nftNumber != null) {
+            this.nftNumber = nftNumber;
+        }
+    }
+
+    public void setFavoriteAmount(Integer favoriteAmount) {
+        if (favoriteAmount != null) {
+            this.favoriteAmount = favoriteAmount;
+        }
+    }
+
+    public void setDaoToken(Long daoToken) {
+        if (daoToken != null) {
+            this.daoToken = daoToken;
+        }
+    }
+
+    public void setMintRevenue(Double mintRevenue) {
+        if (mintRevenue != null) {
+            this.mintRevenue = mintRevenue;
+        }
+    }
+
+    public void setTotalNftCasting(Integer totalNftCasting) {
+        if (totalNftCasting != null) {
+            this.totalNftCasting = totalNftCasting;
+        }
     }
 }

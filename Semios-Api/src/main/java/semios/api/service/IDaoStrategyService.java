@@ -42,4 +42,12 @@ public interface IDaoStrategyService extends IService<DaoStrategy> {
      * @return
      */
     int saveDaoStrategyListOrUpdateDao(List<DaoStrategy> daoStrategyList, Dao dao);
+
+    /**
+     * 根据dao id查询所有生效的策略
+     *
+     * @param daoId
+     * @return
+     */
+    List<DaoStrategy> selectDaoStrategyByDaoId(Integer daoId);
 }

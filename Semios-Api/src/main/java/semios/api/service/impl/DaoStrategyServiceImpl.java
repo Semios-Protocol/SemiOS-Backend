@@ -88,4 +88,10 @@ public class DaoStrategyServiceImpl extends ServiceImpl<DaoStrategyMapper, DaoSt
 
         return i;
     }
+
+
+    @Override
+    public List<DaoStrategy> selectDaoStrategyByDaoId(Integer daoId) {
+        return daoStrategyMapper.selectDaoStrategyByDaoId(daoId);
+    }
 }

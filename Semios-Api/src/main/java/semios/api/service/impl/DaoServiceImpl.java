@@ -14,11 +14,15 @@ import semios.api.interceptor.S3Service;
 import semios.api.mapper.*;
 import semios.api.model.dto.common.BucketObjectRepresentaion;
 import semios.api.model.dto.common.ProtoDaoConstant;
+import semios.api.model.dto.common.Result;
+import semios.api.model.dto.common.ResultDesc;
 import semios.api.model.dto.response.NewProjectUriDto;
 import semios.api.model.entity.*;
 import semios.api.model.enums.TrueOrFalseEnum;
 import semios.api.model.vo.req.DaoEditReqVo;
+import semios.api.model.vo.req.DaoIdReqVo;
 import semios.api.model.vo.req.DaoSortedReqVo;
+import semios.api.model.vo.res.DaoExportInfo.DaoExportInfoVo;
 import semios.api.service.IDaoService;
 import semios.api.utils.CommonUtil;
 import semios.api.utils.JacksonUtil;
@@ -39,23 +43,17 @@ import java.util.List;
 @Service
 public class DaoServiceImpl extends ServiceImpl<DaoMapper, Dao> implements IDaoService {
 
+    private static final RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private DaoMapper daoMapper;
-
     @Autowired
     private SubscribeMapper subscribeMapper;
-
     @Autowired
     private CanvasMapper canvasMapper;
-
     @Autowired
     private ShutdownRecordMapper shutdownRecordMapper;
-
     @Autowired
     private WorkMapper workMapper;
-
-    private static final RestTemplate restTemplate = new RestTemplate();
-
     @Autowired
     private S3Service s3Service;
 
@@ -75,7 +73,7 @@ public class DaoServiceImpl extends ServiceImpl<DaoMapper, Dao> implements IDaoS
     }
 
     @Override
-    public List<Dao> searchSeedNodes(String searchId){
+    public List<Dao> searchSeedNodes(String searchId) {
         return daoMapper.searchSeedNodes(searchId);
     }
 
@@ -283,7 +281,7 @@ public class DaoServiceImpl extends ServiceImpl<DaoMapper, Dao> implements IDaoS
 
 
         // 修改该node下所有work 自动生成的图片..
-        if (StringUtils.isNotBlank(daoEditReqVo.getOldDaoWorkUrl())){
+        if (StringUtils.isNotBlank(daoEditReqVo.getOldDaoWorkUrl())) {
             workMapper.updateWorkUrl(dao.getId(), daoEditReqVo.getOldDaoWorkUrl(), dao.getDaoWorkUrl());// 修改用户上传的work
             workMapper.updatePassCardUrl(dao.getId(), dao.getDaoWorkUrl()); // 修改pass卡
         }
@@ -406,7 +404,7 @@ public class DaoServiceImpl extends ServiceImpl<DaoMapper, Dao> implements IDaoS
 
     @Override
     public Page<Dao> selectByTogetherDaoIdPage(IPage<Dao> daoIPage, String togetherDaoId) {
-        return daoMapper.selectByTogetherDaoIdPage(daoIPage,togetherDaoId);
+        return daoMapper.selectByTogetherDaoIdPage(daoIPage, togetherDaoId);
     }
 
     @Override
@@ -415,8 +413,8 @@ public class DaoServiceImpl extends ServiceImpl<DaoMapper, Dao> implements IDaoS
     }
 
     @Override
-    public Dao getDaoByProjectId(String projectId,Integer isTogetherDao) {
-        return daoMapper.getDaoByProjectId(projectId,isTogetherDao);
+    public Dao getDaoByProjectId(String projectId, Integer isTogetherDao) {
+        return daoMapper.getDaoByProjectId(projectId, isTogetherDao);
     }
 
     @Override
@@ -436,8 +434,24 @@ public class DaoServiceImpl extends ServiceImpl<DaoMapper, Dao> implements IDaoS
     }
 
     @Override
-    public Page<Dao> searchDao(IPage<Dao> page,String searchId){
-        return daoMapper.searchDao(page,searchId);
+    public Page<Dao> searchDao(IPage<Dao> page, String searchId) {
+        return daoMapper.searchDao(page, searchId);
+    }
+
+
+    @Override
+    public Result<DaoExportInfoVo> daoExportInfo(DaoIdReqVo daoIdReqVo) {
+        Result<DaoExportInfoVo> result = new Result<>();
+        // 获取dao信息
+        Dao dao = daoMapper.selectById(daoIdReqVo.getDaoId());
+        if (dao == null || dao.getIsTogetherDao() == 1) {
+            result.setResultDesc(ResultDesc.AUTH_ERROR.getResultDesc());
+            result.setResultCode(ResultDesc.AUTH_ERROR.getResultCode());
+            return result;
+        }
+        DaoExportInfoVo daoExportInfoVo = DaoExportInfoVo.tranferDaoExportInfoVo(dao);
+        result.setData(daoExportInfoVo);
+        return result;
     }
 
 }
