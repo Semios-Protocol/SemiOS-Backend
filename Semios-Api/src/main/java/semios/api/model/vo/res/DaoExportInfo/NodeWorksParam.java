@@ -60,16 +60,24 @@ public class NodeWorksParam {
 
     public static NodeWorksParam transferNodeWorksParam(Dao dao) {
         NodeWorksParam nodeWorksParam = new NodeWorksParam();
-        nodeWorksParam.setNeedMintableWork(dao.getNeedMintableWork() == 0 ? 1 : 0);   // 数据库0为需要添加，1为不需要添加
-        nodeWorksParam.setGenerateWorkSet(dao.getGenerateWorkSet());
+        nodeWorksParam.setNeedMintableWork(dao.getNeedMintableWork() == 0 ? 1 : 0);
+        if (nodeWorksParam.getNeedMintableWork() == 0) {
+            nodeWorksParam.setGenerateWorkSet(500); // 如果不需要添加pass卡，默认设置为500个
+        } else {
+            nodeWorksParam.setGenerateWorkSet(dao.getGenerateWorkSet());
+        }
         nodeWorksParam.setErc20PaymentMode(dao.getErc20PaymentMode());
 
         nodeWorksParam.setGlobalDaoPriceMode(dao.getGlobalDaoPrice().compareTo(BigDecimal.ONE.negate()) == 0 ? 0 : 1);
         if (nodeWorksParam.getGlobalDaoPriceMode() == 1) {
             nodeWorksParam.setGlobalDaoPrice(dao.getGlobalDaoPrice());
+            nodeWorksParam.setDaoFloorPrice(new BigDecimal("0.0001"));
+        } else {
+            nodeWorksParam.setGlobalDaoPrice(new BigDecimal("0.01"));
+            nodeWorksParam.setDaoFloorPrice(dao.getDaoFloorPrice());
         }
 
-        nodeWorksParam.setDaoFloorPrice(dao.getDaoFloorPrice());
+
         nodeWorksParam.setCanvasPriceFluctuationMethod(dao.getCanvasPriceFluctuationMethod());
 
         if (nodeWorksParam.getCanvasPriceFluctuationMethod() == 0) {

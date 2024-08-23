@@ -22,7 +22,7 @@ import semios.api.controller.NodePermissionNftController;
 import semios.api.model.dto.common.ProtoDaoConstant;
 import semios.api.model.dto.common.Result;
 import semios.api.model.dto.common.ResultDesc;
-import semios.api.model.vo.req.DaoIdReqVo;
+import semios.api.model.vo.req.DaoExportInfoParam.DaoExportParam;
 import semios.api.model.vo.res.DaoExportInfo.DaoExportInfoVo;
 import semios.api.utils.JacksonUtil;
 import semios.api.utils.SpringBeanUtil;
@@ -66,8 +66,9 @@ class SemiosTest {
         List<Result<DaoExportInfoVo>> resultList = new ArrayList<>();
 
         Result<DaoExportInfoVo> returnVo;
-        DaoIdReqVo daoIdReqVo = new DaoIdReqVo();
+        DaoExportParam daoIdReqVo = new DaoExportParam();
         daoIdReqVo.setUserAddress("0xf8BAf7268F3daeFE4135F7711473aE8b6c3b47d8");
+        daoIdReqVo.setType(1);
 
         daoIdReqVo.setDaoId("1");
         returnVo = daoController.daoExportInfo(daoIdReqVo, addressRequest(address));

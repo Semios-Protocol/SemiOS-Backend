@@ -1,18 +1,21 @@
 package semios.api.service;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import org.apache.ibatis.annotations.Param;
 import semios.api.model.dto.common.Result;
 import semios.api.model.dto.response.NewProjectUriDto;
 import semios.api.model.entity.*;
 import semios.api.model.vo.req.DaoEditReqVo;
+import semios.api.model.vo.req.DaoExportInfoParam.DaoExportParam;
 import semios.api.model.vo.req.DaoIdReqVo;
 import semios.api.model.vo.req.DaoSortedReqVo;
 import semios.api.model.vo.res.DaoExportInfo.DaoExportInfoVo;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * <p>
@@ -30,7 +33,7 @@ public interface IDaoService extends IService<Dao> {
 
     List<Dao> searchDao(String searchId);
 
-    Page<Dao> searchDao(IPage<Dao> page, String searchId);
+    Page<Dao> searchDao(IPage<Dao> page,String searchId);
 
     List<Dao> selectDaoByIds(List<Integer> ids);
 
@@ -129,7 +132,7 @@ public interface IDaoService extends IService<Dao> {
     List<Dao> listAll();
 
     // 通过projectID 获取聚合dao
-    Dao getDaoByProjectId(String projectId, Integer isTogetherDao);
+    Dao getDaoByProjectId(String projectId,Integer isTogetherDao);
 
     // 通过projectID 获取聚合dao
     Dao getTogetherDaoBySubDaoProjectId(String projectId);
@@ -139,5 +142,5 @@ public interface IDaoService extends IService<Dao> {
     Page<Dao> getDaoListByTogetherDaoId(IPage<Dao> page, String togetherDaoId);
 
     // 导出dao信息
-    Result<DaoExportInfoVo> daoExportInfo(DaoIdReqVo daoIdReqVo);
+    Result<DaoExportInfoVo> daoExportInfo(DaoExportParam daoExportParam);
 }

@@ -7,11 +7,14 @@ import semios.api.model.dto.chain.DaoRoyaltyToken;
 import semios.api.model.entity.Dao;
 import semios.api.model.entity.DaoAllocationStrategy;
 import semios.api.model.enums.TrueOrFalseEnum;
+import semios.api.model.vo.req.DaoExportInfoParam.DaoExportParam;
+import semios.api.model.vo.res.DaoAllocationVo;
 import semios.api.service.IDaoAllocationStrategyService;
 import semios.api.utils.JacksonUtil;
 import semios.api.utils.SpringBeanUtil;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,6 +44,18 @@ public class NodesTokenStructure {
      */
     // This Nodes Reserves = (100 - This Nodes Internal Incentives)
     private Erc20Allocation daoAllocation;
+
+    // Assets Interacts with Other Nodes
+
+    /**
+     * DAO token allocation
+     */
+    private List<DaoAllocationVo> daoTokenAllocationVos = new ArrayList<>();
+    /**
+     * DAO eth allocation
+     */
+    private List<DaoAllocationVo> daoEthAllocationVos = new ArrayList<>();
+
 
     /**
      * ERC-721 Mint Fee  Floating Mint price
@@ -84,7 +99,7 @@ public class NodesTokenStructure {
     private DaoEthRoyaltyToken ethIncentives;
 
 
-    public static NodesTokenStructure tranferNodesTokenStructure(Dao dao) {
+    public static NodesTokenStructure tranferNodesTokenStructure(Dao dao, DaoExportParam daoExportParam) {
         NodesTokenStructure daoBenefitsDistributeResVo = new NodesTokenStructure();
 
         IDaoAllocationStrategyService daoAllocationStrategyService = SpringBeanUtil.getBean(IDaoAllocationStrategyService.class);
@@ -94,22 +109,49 @@ public class NodesTokenStructure {
 
         daoBenefitsDistributeResVo.setRoyaltyTokenLotteryMode(dao.getRoyaltyTokenLotteryMode());
 
+
         List<DaoAllocationStrategy> daoAllocationStrategyList = daoAllocationStrategyService.selectByOriginProjectIdAndType(dao.getProjectId(), null);
+
         List<BigDecimal> ethAllocationList = daoAllocationStrategyList.stream().filter(v -> v.getType() == 1 && v.getRoyaltyType() != 0).sorted(Comparator.comparing(DaoAllocationStrategy::getRoyaltyType)).map(DaoAllocationStrategy::getRoyaltyProportion).collect(Collectors.toList());
         ETHAllocation ethAllocation = new ETHAllocation();
         ethAllocation.setSeedNodesRedeemPool(ethAllocationList.get(0).toPlainString());
         ethAllocation.setNodesInternalIncentives(ethAllocationList.get(1).toPlainString());
+        // 如果导出的是sub node，需要计算到给其他node的分配比例
+        if (daoExportParam.getType().equals(1)){
+            List<DaoAllocationVo> daoEthAllocationVos = daoAllocationStrategyList.stream().filter(v -> v.getType() == 1 && v.getRoyaltyType() == 0).map(DaoAllocationVo::transfer).collect(Collectors.toList());
+            daoBenefitsDistributeResVo.setDaoEthAllocationVos(daoEthAllocationVos);
+            if (!daoEthAllocationVos.isEmpty()){
+                // 计算出其他node所有的royaltyProportion之和
+                BigDecimal sumRoyaltyProportionEth = daoEthAllocationVos.stream().map(DaoAllocationVo::getRoyaltyProportion).reduce(BigDecimal.ZERO, BigDecimal::add);
+                ethAllocation.setEthToOtherNodes(sumRoyaltyProportionEth.toPlainString());
+            }
+        }
         ethAllocation.setNodesReserves(new BigDecimal(100)
                 .subtract(new BigDecimal(ethAllocation.getSeedNodesRedeemPool()))
                 .subtract(new BigDecimal(ethAllocation.getNodesInternalIncentives()))
+                .subtract(new BigDecimal(ethAllocation.getEthToOtherNodes()))   // 如果是seed node，默认为0，不影响计算
                 .toPlainString());
         daoBenefitsDistributeResVo.setEthAllocation(ethAllocation);
+
 
         List<BigDecimal> daoAllocationList = daoAllocationStrategyList.stream().filter(v -> v.getType() == 0 && v.getRoyaltyType() != 0).sorted(Comparator.comparing(DaoAllocationStrategy::getRoyaltyType)).map(DaoAllocationStrategy::getRoyaltyProportion).collect(Collectors.toList());
         Erc20Allocation erc20Allocation = new Erc20Allocation();
         erc20Allocation.setNodesInternalIncentives(daoAllocationList.get(0).toPlainString());
+        // 如果导出的是sub node，需要计算到给其他node的分配比例
+        if (daoExportParam.getType().equals(1)){
+            List<DaoAllocationVo> daoTokenAllocationVos  = daoAllocationStrategyList.stream().filter(v -> v.getType() == 0 && v.getRoyaltyType() == 0).map(DaoAllocationVo::transfer).collect(Collectors.toList());
+            daoBenefitsDistributeResVo.setDaoTokenAllocationVos(daoTokenAllocationVos);
+            if (!daoTokenAllocationVos.isEmpty()){
+                // 计算出所有的royaltyProportion之和
+                BigDecimal sumRoyaltyProportionToken = daoTokenAllocationVos.stream().map(DaoAllocationVo::getRoyaltyProportion).reduce(BigDecimal.ZERO, BigDecimal::add);
+                erc20Allocation.setErc20TOtherNodes(sumRoyaltyProportionToken.toPlainString());
+            }
+        }
+
+        // 根据情况判断
         erc20Allocation.setNodesReserves(new BigDecimal(100)
                 .subtract(new BigDecimal(erc20Allocation.getNodesInternalIncentives()))
+                .subtract(new BigDecimal(erc20Allocation.getErc20TOtherNodes()))   // 如果是seed node，默认为0，不影响计算
                 .toPlainString());
         daoBenefitsDistributeResVo.setDaoAllocation(erc20Allocation);
 
