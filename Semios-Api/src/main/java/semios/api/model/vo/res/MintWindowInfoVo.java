@@ -49,4 +49,9 @@ public class MintWindowInfoVo {
      * 1.4 是否开启erc20支付
      */
     private Boolean daoToken = false;
+
+    /**
+     * 1.4 top-up模式的开关
+     */
+    private Boolean topupMode = false;
 }

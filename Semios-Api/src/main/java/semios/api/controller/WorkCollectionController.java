@@ -16,14 +16,19 @@ import semios.api.model.entity.Dao;
 import semios.api.model.entity.Favorites;
 import semios.api.model.entity.Work;
 import semios.api.model.enums.FavoriteTypeEnum;
-import semios.api.model.vo.req.*;
+import semios.api.model.vo.req.DaoSortedReqVo;
+import semios.api.model.vo.req.SearchReqVo;
+import semios.api.model.vo.req.UserProfilePageReqVo;
+import semios.api.model.vo.req.WorkId;
 import semios.api.model.vo.req.WorkInfo.WorkCurrentWindow;
 import semios.api.model.vo.req.WorkInfo.WorkInfo;
 import semios.api.model.vo.res.BaseWorkVo.BaseWorkListVo;
 import semios.api.service.IDaoService;
 import semios.api.service.IFavoritesService;
 import semios.api.service.IWorkService;
-import semios.api.utils.*;
+import semios.api.utils.BeanUtil;
+import semios.api.utils.CommonUtil;
+import semios.api.utils.CookieUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -57,13 +62,13 @@ public class WorkCollectionController {
      */
     @PostMapping(value = "/nft/list")
     public Result<WorkInfo> exploreNft(@RequestBody(required = false) DaoSortedReqVo daoSortedReqVo,
-                                        HttpServletRequest request) {
+                                       HttpServletRequest request) {
         Result<WorkInfo> result = new Result<>();
         Page<Work> iPage = new Page<>(daoSortedReqVo.getPageNo(), daoSortedReqVo.getPageSize());
         Page<Work> workPage;
         if (StringUtils.isBlank(daoSortedReqVo.getDaoId())) {
             workPage = workService.selectNfts(iPage, daoSortedReqVo);
-        }else {
+        } else {
             // dao下nft
             Dao dao = daoService.daoDetailByDaoId(Integer.valueOf(daoSortedReqVo.getDaoId()));
             if (dao == null || StringUtils.isBlank(dao.getProjectId())) {
@@ -79,7 +84,7 @@ public class WorkCollectionController {
 
         String userAddress = CookieUtil.getUserAddressFromCookie(request, ProtoDaoConstant.COOKIE_ADDRESS);
         List<Integer> favoritesIds = new ArrayList<>();
-        if (StringUtils.isNotBlank(userAddress)){
+        if (StringUtils.isNotBlank(userAddress)) {
             favoritesIds = favoritesService.findIdListByUserAddress(FavoriteTypeEnum.WORK_FAVORITE.getType(), userAddress);
         }
         List<Integer> finalFavoritesIds = favoritesIds;
@@ -98,15 +103,13 @@ public class WorkCollectionController {
     }
 
 
-
     /**
      * 1.9.1 explore下Mintable Works列表与dao详情内的Mintable Works
      * 原来的work/explore/unmintedWorks和dao/unmintedWorks
-     *
      */
     @PostMapping(value = "/works/list")
     public Result<WorkInfo> exploreWorks(@RequestBody(required = false) DaoSortedReqVo daoSortedReqVo,
-                                       HttpServletRequest request) {
+                                         HttpServletRequest request) {
         Result<WorkInfo> result = new Result<>();
         Page<Work> iPage = new Page<>(daoSortedReqVo.getPageNo(), daoSortedReqVo.getPageSize());
         Page<Work> workPage;
@@ -114,7 +117,7 @@ public class WorkCollectionController {
         if (StringUtils.isBlank(daoSortedReqVo.getDaoId())) {
             // explore下未铸造work列表
             workPage = workService.unmintedWorks(iPage, daoSortedReqVo);
-        }else {
+        } else {
             // dao下未铸造work列表
             Dao dao = daoService.daoDetailByDaoId(Integer.valueOf(daoSortedReqVo.getDaoId()));
             if (dao == null || StringUtils.isBlank(dao.getProjectId())) {
@@ -130,7 +133,7 @@ public class WorkCollectionController {
 
         String userAddress = CookieUtil.getUserAddressFromCookie(request, ProtoDaoConstant.COOKIE_ADDRESS);
         List<Integer> favoritesIds = new ArrayList<>();
-        if (StringUtils.isNotBlank(userAddress)){
+        if (StringUtils.isNotBlank(userAddress)) {
             favoritesIds = favoritesService.findIdListByUserAddress(FavoriteTypeEnum.WORK_FAVORITE.getType(), userAddress);
         }
         List<Integer> finalFavoritesIds = favoritesIds;
@@ -152,11 +155,10 @@ public class WorkCollectionController {
     /**
      * 1.9.1 dao详情内的DRB NFTs,当前周期内的nft
      * 原来的dao/drbNfts
-     *
      */
     @PostMapping(value = "/drb/nft/list")
     public Result<WorkInfo> drbNftList(@RequestBody(required = false) DaoSortedReqVo daoSortedReqVo,
-                                         HttpServletRequest request) {
+                                       HttpServletRequest request) {
         Result<WorkInfo> result = new Result<>();
         Page<Work> iPage = new Page<>(daoSortedReqVo.getPageNo(), daoSortedReqVo.getPageSize());
 
@@ -179,7 +181,7 @@ public class WorkCollectionController {
 
         String userAddress = CookieUtil.getUserAddressFromCookie(request, ProtoDaoConstant.COOKIE_ADDRESS);
         List<Integer> favoritesIds = new ArrayList<>();
-        if (StringUtils.isNotBlank(userAddress)){
+        if (StringUtils.isNotBlank(userAddress)) {
             favoritesIds = favoritesService.findIdListByUserAddress(FavoriteTypeEnum.WORK_FAVORITE.getType(), userAddress);
         }
         List<Integer> finalFavoritesIds = favoritesIds;
@@ -212,7 +214,7 @@ public class WorkCollectionController {
         List<Work> works = workPage.getRecords();
 
         List<Integer> favoritesIds = new ArrayList<>();
-        if (StringUtils.isNotBlank(userAddress)){
+        if (StringUtils.isNotBlank(userAddress)) {
             favoritesIds = favoritesService.findIdListByUserAddress(FavoriteTypeEnum.WORK_FAVORITE.getType(), userAddress);
         }
         List<Integer> finalFavoritesIds = favoritesIds;
@@ -242,7 +244,7 @@ public class WorkCollectionController {
         List<Work> works = workPage.getRecords();
 
         List<Integer> favoritesIds = new ArrayList<>();
-        if (StringUtils.isNotBlank(userAddress)){
+        if (StringUtils.isNotBlank(userAddress)) {
             favoritesIds = favoritesService.findIdListByUserAddress(FavoriteTypeEnum.WORK_FAVORITE.getType(), userAddress);
         }
         List<Integer> finalFavoritesIds = favoritesIds;
@@ -273,7 +275,7 @@ public class WorkCollectionController {
         List<Work> works = workPage.getRecords();
 
         List<Integer> favoritesIds = new ArrayList<>();
-        if (StringUtils.isNotBlank(userAddress)){
+        if (StringUtils.isNotBlank(userAddress)) {
             favoritesIds = favoritesService.findIdListByUserAddress(FavoriteTypeEnum.WORK_FAVORITE.getType(), userAddress);
         }
         List<Integer> finalFavoritesIds = favoritesIds;
@@ -297,7 +299,7 @@ public class WorkCollectionController {
      */
     @PostMapping(value = "/search")
     public Result<WorkInfo> searchWorkResult(@RequestBody(required = false) SearchReqVo searchReqVo,
-                                               HttpServletRequest request) {
+                                             HttpServletRequest request) {
 
         Result<WorkInfo> result = new Result<>();
         semios.api.model.dto.common.Page page = new semios.api.model.dto.common.Page();
@@ -331,7 +333,7 @@ public class WorkCollectionController {
                 result.setPage(page);
                 return result;
             } else {
-                Page<Work> workPage = workService.searchWork(iPage,searchReqVo.getSearchWord());
+                Page<Work> workPage = workService.searchWork(iPage, searchReqVo.getSearchWord());
                 workList = workPage.getRecords();
                 page.setCount(workPage.getTotal());
             }
@@ -347,7 +349,7 @@ public class WorkCollectionController {
 //        }
 
         String userAddress = CookieUtil.getUserAddressFromCookie(request, ProtoDaoConstant.COOKIE_ADDRESS);
-        List<Integer> favoritesIds = null;
+        List<Integer> favoritesIds = new ArrayList<>();
         if (StringUtils.isNotBlank(userAddress)) {
             List<Favorites> favoritesList =
                     favoritesService.findListByUserAddress(FavoriteTypeEnum.WORK_FAVORITE.getType(), userAddress);
@@ -375,7 +377,7 @@ public class WorkCollectionController {
                                                     HttpServletRequest request) {
         Result<WorkCurrentWindow> result = new Result<>();
         Work work = workService.selectWorkById(workId.getWorkId());
-        if (work == null || work.getDaoId()==null){
+        if (work == null || work.getDaoId() == null) {
             result.setResultCode(ResultDesc.FAIL.getResultCode());
             result.setResultDesc("work not exist");
             return result;
@@ -388,9 +390,9 @@ public class WorkCollectionController {
             return result;
         }
 
-        BaseWorkListVo baseWorkListVo = BaseWorkListVo.transfer(work,dao);
+        BaseWorkListVo baseWorkListVo = BaseWorkListVo.transfer(work, dao);
         WorkCurrentWindow workCurrentWindow = new WorkCurrentWindow();
-        BeanUtil.copyProperties(baseWorkListVo,workCurrentWindow);
+        BeanUtil.copyProperties(baseWorkListVo, workCurrentWindow);
         result.setData(workCurrentWindow);
         return result;
     }

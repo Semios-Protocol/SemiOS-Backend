@@ -91,8 +91,8 @@ public class ModeStatusVo {
             modeStatusVo.setUnifiedPrice(dao.getGlobalDaoPrice().stripTrailingZeros().toPlainString());
             modeStatusVo.setErc20PaymentMode(TrueOrFalseEnum.TRUE.getStatus().equals(dao.getErc20PaymentMode()));
         }
-        modeStatusVo.setSpeicialStrategy((dao.getCanvasCreatedWhitelist() + dao.getMinterWorksWhitelist() + dao.getCanvasCreatedBlacklist()
-                + dao.getMinterWorksBlacklist() + dao.getGlobalMintCap() + dao.getMintCap() + dao.getErc721MintCap()) > 0);
+        modeStatusVo.setSpeicialStrategy((dao.getCanvasCreatedBlacklist() + dao.getCanvasCreatedWhitelist() + dao.getCanvasCreatedWhitelistNft() + dao.getMinterWorksBlacklist()
+                + dao.getMinterWorksWhitelist() + dao.getMinterWorksWhitelistNft() + dao.getMintCap() + dao.getErc721MintCap() + dao.getErc721MintCapId() + dao.getGlobalMintCap()) > 0);
         modeStatusVo.setInfiniteMode(TrueOrFalseEnum.TRUE.getStatus().equals(dao.getInfiniteMode()));
 
         return modeStatusVo;

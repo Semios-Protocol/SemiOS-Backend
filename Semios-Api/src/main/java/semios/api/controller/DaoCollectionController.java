@@ -115,6 +115,8 @@ public class DaoCollectionController {
         }
         MintWindowInfoVo mintWindowInfo = commonService.getMintWindowInfoVo(dao);
         log.info("mintWindowInfo:{}", JacksonUtil.obj2json(mintWindowInfo));
+
+        mintWindowInfo.setTopupMode(TrueOrFalseEnum.TRUE.getStatus().equals(dao.getTopupMode()));
         result.setData(mintWindowInfo);
 
         return result;

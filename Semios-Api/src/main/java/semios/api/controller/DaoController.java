@@ -24,7 +24,9 @@ import semios.api.model.entity.*;
 import semios.api.model.enums.*;
 import semios.api.model.vo.PageVo;
 import semios.api.model.vo.req.*;
+import semios.api.model.vo.req.DaoExportInfoParam.DaoExportParam;
 import semios.api.model.vo.res.*;
+import semios.api.model.vo.res.DaoExportInfo.DaoExportInfoVo;
 import semios.api.service.*;
 import semios.api.service.common.CommonService;
 import semios.api.service.feign.ISubscriptionService;
@@ -1970,13 +1972,16 @@ public class DaoController {
             return result;
         }
 
-        String isExistNodeName = NodeNameMapUtil.get(bacisDaoCreateReqVo.getDaoName());
-        if (StringUtils.isNotBlank(isExistNodeName)) {
-            result.setResultDesc("This name is being used by someone else. Please wait for 3 minutes.");
-            result.setResultCode(ResultDesc.ERROR.getResultCode());
-            return result;
-        } else {
-            NodeNameMapUtil.put(bacisDaoCreateReqVo.getDaoName(), useraddress);
+        // test 环境不用做限制
+        if (!EnvEnum.TEST.getEnv().equals(ProtoDaoConstant.activity)) {
+            String isExistNodeName = NodeNameMapUtil.get(bacisDaoCreateReqVo.getDaoName());
+            if (StringUtils.isNotBlank(isExistNodeName)) {
+                result.setResultDesc("This name is being used by someone else. Please wait for 3 minutes.");
+                result.setResultCode(ResultDesc.ERROR.getResultCode());
+                return result;
+            } else {
+                NodeNameMapUtil.put(bacisDaoCreateReqVo.getDaoName(), useraddress);
+            }
         }
 
 
@@ -2372,7 +2377,7 @@ public class DaoController {
 
         String projectId = StringUtils.isBlank(dao.getExistDaoId()) ? dao.getProjectId() : dao.getExistDaoId();
         List<Dao> daoList = daoService.selectByExistDaoId(projectId);
-        if (!TrueOrFalseEnum.TRUE.getStatus().equals(daoReqVo.getType())) {
+        if (TrueOrFalseEnum.TRUE.getStatus().equals(daoReqVo.getType())) {
             daoList = daoList.stream().filter(v -> !Integer.valueOf(daoReqVo.getDaoId()).equals(v.getId())).collect(Collectors.toList());
         }
         List<DaoNameListVo> daoNameListVos = daoList.stream().map(DaoNameListVo::transfer).collect(Collectors.toList());
@@ -2510,9 +2515,6 @@ public class DaoController {
         return result;
     }
 
-
-    // ========================私有方法分隔线===========================================//
-
     /**
      * 1.3 查询addWork白名单merkle信息
      */
@@ -2584,6 +2586,25 @@ public class DaoController {
         result.setData(daoWhiteMerkelResVo);
 
         return result;
+    }
+
+
+    // ========================私有方法分隔线===========================================//
+
+    /**
+     * 1.11 根据id获取dao的导出信息
+     */
+    @PostMapping(value = "/export/info")
+    public Result<DaoExportInfoVo> daoExportInfo(@RequestBody DaoExportParam daoExportParam, HttpServletRequest request) {
+
+        Result<DaoExportInfoVo> result = new Result<>();
+        if (daoExportParam == null || StringUtils.isBlank(daoExportParam.getDaoId()) || daoExportParam.getType() == null) {
+            result.setResultDesc(ResultDesc.PARAM_ERROR.getResultDesc());
+            result.setResultCode(ResultDesc.PARAM_ERROR.getResultCode());
+            return result;
+        }
+
+        return daoService.daoExportInfo(daoExportParam);
     }
 
     /**
