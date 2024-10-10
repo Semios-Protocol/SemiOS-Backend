@@ -18,16 +18,10 @@
             parameterType="semios.api.model.vo.req.DaoSortedReqVo">
         select dds.*,dao.id as
         daoId,dao.dao_name,dao.dao_logo_url,dao.dao_description,dao.dao_number,dao.dao_status,dao.dao_floor_price,dao.favorite_amount,dao.topup_mode,
-        case
-        when dao.canvas_floor_price is null then dao.dao_floor_price
-        when dao.canvas_floor_price is not null then dao.canvas_floor_price
-        end as dao_price,
-        case
-        when (dao.canvas_created_whitelist + dao.canvas_created_blacklist + dao.minter_works_whitelist +
-        dao.minter_works_blacklist + dao.global_mint_cap) > 0 then 1
-        when (dao.canvas_created_whitelist + dao.canvas_created_blacklist + dao.minter_works_whitelist +
-        dao.minter_works_blacklist + dao.global_mint_cap) = 0 then 0
-        end as whiteList
+        COALESCE(dao.canvas_floor_price, dao.dao_floor_price) AS dao_price ,
+        (IF((dao.canvas_created_whitelist + dao.canvas_created_blacklist + dao.minter_works_whitelist +
+        dao.minter_works_blacklist + dao.global_mint_cap + dao.canvas_created_whitelist_nft +
+        dao.minter_works_whitelist_nft + dao.erc721_mint_cap + dao.erc721_mint_cap_id) > 0, 1, 0)) AS whiteList
         from dao as dao
         left join ( SELECT MAX( id ) AS id,dao_id FROM dao_drb_statistics GROUP BY dao_id ) as dda on dao.id =
         dda.dao_id
@@ -41,43 +35,88 @@
         </if>
         <if test="daoSortedReqVo.minPrice != null and daoSortedReqVo.minPrice != ''">
             and
-            (case
-            when dao.canvas_floor_price is null then dao.dao_floor_price
-            when dao.canvas_floor_price is not null then dao.canvas_floor_price end) >= #{daoSortedReqVo.minPrice}
+            dao_price >= #{daoSortedReqVo.minPrice}
         </if>
         <if test="daoSortedReqVo.maxPrice != null and daoSortedReqVo.maxPrice != ''">
             and
-            (case
-            when dao.canvas_floor_price is null then dao.dao_floor_price
-            when dao.canvas_floor_price is not null then dao.canvas_floor_price end) <![CDATA[<=]]>
-            #{daoSortedReqVo.maxPrice}
+            dao_price <![CDATA[<=]]> #{daoSortedReqVo.maxPrice}
         </if>
         <if test="daoSortedReqVo.sortCondition == null or daoSortedReqVo.sortCondition == ''">
             ORDER BY dao.block_time desc
         </if>
-        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('0') == 0">
+        <if test="daoSortedReqVo.sortCondition == null or daoSortedReqVo.sortCondition == ''">
             ORDER BY dao.block_time desc
         </if>
-        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('1') == 0">
-            ORDER BY dao.favorite_amount desc
-        </if>
-        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('2') == 0">
-            ORDER BY dao_price desc
-        </if>
-        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('3') == 0">
-            ORDER BY dao_price ASC
+        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != ''">
+            <choose>
+                <when test="daoSortedReqVo.sortCondition.compareTo('0') == 0">
+                    ORDER BY dao.block_time desc
+                </when>
+                <when test="daoSortedReqVo.sortCondition.compareTo('1') == 0">
+                    ORDER BY dao.favorite_amount desc
+                </when>
+                <when test="daoSortedReqVo.sortCondition.compareTo('2') == 0">
+                    ORDER BY dao_price desc
+                </when>
+                <when test="daoSortedReqVo.sortCondition.compareTo('3') == 0">
+                    ORDER BY dao_price ASC
+                </when>
+            </choose>
         </if>
         ,dao.id desc
     </select>
 
 
+<!--    <select id="exploreSeedNodes" resultType="semios.api.model.entity.Dao"-->
+<!--            parameterType="semios.api.model.vo.req.DaoSortedReqVo">-->
+<!--        select dao.*,-->
+<!--        case-->
+<!--        when dao.canvas_floor_price is null then dao.dao_floor_price-->
+<!--        when dao.canvas_floor_price is not null then dao.canvas_floor_price-->
+<!--        end as dao_price-->
+<!--        from dao as dao-->
+<!--        where dao.is_together_dao = 1-->
+<!--        <if test="daoSortedReqVo.daoIdList != null">-->
+<!--            and dao.id in-->
+<!--            <foreach collection="daoSortedReqVo.daoIdList" index="index" item="item" open="(" separator="," close=")">-->
+<!--                #{item}-->
+<!--            </foreach>-->
+<!--        </if>-->
+<!--        <if test="daoSortedReqVo.minPrice != null and daoSortedReqVo.minPrice != ''">-->
+<!--            and-->
+<!--            (case-->
+<!--            when dao.canvas_floor_price is null then dao.dao_floor_price-->
+<!--            when dao.canvas_floor_price is not null then dao.canvas_floor_price end) >= #{daoSortedReqVo.minPrice}-->
+<!--        </if>-->
+<!--        <if test="daoSortedReqVo.maxPrice != null and daoSortedReqVo.maxPrice != ''">-->
+<!--            and-->
+<!--            (case-->
+<!--            when dao.canvas_floor_price is null then dao.dao_floor_price-->
+<!--            when dao.canvas_floor_price is not null then dao.canvas_floor_price end) <![CDATA[<=]]>-->
+<!--            #{daoSortedReqVo.maxPrice}-->
+<!--        </if>-->
+<!--        <if test="daoSortedReqVo.sortCondition == null or daoSortedReqVo.sortCondition == ''">-->
+<!--            ORDER BY dao.block_time desc-->
+<!--        </if>-->
+<!--        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('0') == 0">-->
+<!--            ORDER BY dao.block_time desc-->
+<!--        </if>-->
+<!--        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('1') == 0">-->
+<!--            ORDER BY dao.favorite_amount desc-->
+<!--        </if>-->
+<!--        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('2') == 0">-->
+<!--            ORDER BY dao_price desc-->
+<!--        </if>-->
+<!--        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('3') == 0">-->
+<!--            ORDER BY dao_price ASC-->
+<!--        </if>-->
+<!--        ,dao.id desc-->
+<!--    </select>-->
+
     <select id="exploreSeedNodes" resultType="semios.api.model.entity.Dao"
             parameterType="semios.api.model.vo.req.DaoSortedReqVo">
         select dao.*,
-        case
-        when dao.canvas_floor_price is null then dao.dao_floor_price
-        when dao.canvas_floor_price is not null then dao.canvas_floor_price
-        end as dao_price
+        COALESCE(dao.canvas_floor_price, dao.dao_floor_price) as dao_price
         from dao as dao
         where dao.is_together_dao = 1
         <if test="daoSortedReqVo.daoIdList != null">
@@ -86,37 +125,28 @@
                 #{item}
             </foreach>
         </if>
-        <if test="daoSortedReqVo.minPrice != null and daoSortedReqVo.minPrice != ''">
-            and
-            (case
-            when dao.canvas_floor_price is null then dao.dao_floor_price
-            when dao.canvas_floor_price is not null then dao.canvas_floor_price end) >= #{daoSortedReqVo.minPrice}
+        <if test="daoSortedReqVo.topUpMode != null and daoSortedReqVo.topUpMode == true ">
+            and EXISTS (
+            select 1
+            from dao ds
+            where ds.is_together_dao=0 and ds.together_dao_id = dao.id and ds.topup_mode = 1
+            )
         </if>
-        <if test="daoSortedReqVo.maxPrice != null and daoSortedReqVo.maxPrice != ''">
-            and
-            (case
-            when dao.canvas_floor_price is null then dao.dao_floor_price
-            when dao.canvas_floor_price is not null then dao.canvas_floor_price end) <![CDATA[<=]]>
-            #{daoSortedReqVo.maxPrice}
+        <if test="daoSortedReqVo.withIncentivePlan != null and daoSortedReqVo.withIncentivePlan == true ">
+            and EXISTS (
+            select 1
+            from incentive_plan ip
+            where ip.dao_id = dao.id
+            )
         </if>
-        <if test="daoSortedReqVo.sortCondition == null or daoSortedReqVo.sortCondition == ''">
-            ORDER BY dao.block_time desc
+        <if test="daoSortedReqVo.inputTokenTypes.size() > 0">
+            and dao.pay_currency_type in
+            <foreach collection="daoSortedReqVo.inputTokenTypes" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
         </if>
-        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('0') == 0">
-            ORDER BY dao.block_time desc
-        </if>
-        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('1') == 0">
-            ORDER BY dao.favorite_amount desc
-        </if>
-        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('2') == 0">
-            ORDER BY dao_price desc
-        </if>
-        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('3') == 0">
-            ORDER BY dao_price ASC
-        </if>
-        ,dao.id desc
+        ORDER BY dao.block_time desc,dao.id desc
     </select>
-
 
     <select id="selectDaoByDaoNumberList" resultType="semios.api.model.entity.Dao">
         select * from dao
@@ -168,6 +198,51 @@
         select *
         from dao
         where dao.dao_status > 0 and dao.dao_status != 3 and dao.is_together_dao = 0
+
+        <if test="(daoSortedReqVo.topUpMode != null and daoSortedReqVo.topUpMode == true)
+           or (daoSortedReqVo.nodeModeStatus != null and daoSortedReqVo.nodeModeStatus.topupMode != null and daoSortedReqVo.nodeModeStatus.topupMode == true)">
+            and dao.topup_mode = 1
+        </if>
+
+        <if test="daoSortedReqVo.nodeModeStatus != null">
+            <!-- 检查 lotteryMode -->
+            <if test="daoSortedReqVo.nodeModeStatus.lotteryMode != null and daoSortedReqVo.nodeModeStatus.lotteryMode == true">
+                and dao.royalty_token_lottery_mode = 1
+            </if>
+            <!-- 检查 erc20PaymentMode -->
+            <if test="daoSortedReqVo.nodeModeStatus.erc20PaymentMode != null and daoSortedReqVo.nodeModeStatus.erc20PaymentMode == true">
+                and dao.erc20_payment_mode = 1
+            </if>
+            <!-- 检查 unifiedPriceMode -->
+            <if test="daoSortedReqVo.nodeModeStatus.unifiedPriceMode != null and daoSortedReqVo.nodeModeStatus.unifiedPriceMode == true">
+                and  dao.global_dao_price is not null and dao.global_dao_price <![CDATA[>=]]> 0
+            </if>
+            <!-- 检查 speicialStrategy -->
+            <if test="daoSortedReqVo.nodeModeStatus.specialStrategy != null and daoSortedReqVo.nodeModeStatus.specialStrategy == true">
+                and (
+                COALESCE(dao.canvas_created_blacklist, 0) +
+                COALESCE(dao.canvas_created_whitelist, 0) +
+                COALESCE(dao.canvas_created_whitelist_nft, 0) +
+                COALESCE(dao.minter_works_blacklist, 0) +
+                COALESCE(dao.minter_works_whitelist, 0) +
+                COALESCE(dao.minter_works_whitelist_nft, 0) +
+                COALESCE(dao.mint_cap, 0) +
+                COALESCE(dao.erc721_mint_cap, 0) +
+                COALESCE(dao.erc721_mint_cap_id, 0) +
+                COALESCE(dao.global_mint_cap, 0)
+                )>0
+            </if>
+            <!-- 检查 infiniteMode -->
+            <if test="daoSortedReqVo.nodeModeStatus.infiniteMode != null and daoSortedReqVo.nodeModeStatus.infiniteMode == true">
+                and dao.infinite_mode = 1
+            </if>
+        </if>
+        <if test="daoSortedReqVo.inputTokenTypes.size() > 0">
+            and dao.pay_currency_type in
+            <foreach collection="daoSortedReqVo.inputTokenTypes" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
         <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('0') == 0">
             ORDER BY dao.block_time desc
         </if>
@@ -175,6 +250,52 @@
             ORDER BY dao.favorite_amount desc
         </if>
         ,`dao`.id desc
+    </select>
+
+<!--    <select id="selectCollectionDao" resultType="semios.api.model.entity.Dao" parameterType="semios.api.model.vo.req.DaoSortedReqVo">-->
+<!--        select *-->
+<!--        from dao-->
+<!--        where dao.dao_status > 0 and dao.dao_status != 3 and dao.is_together_dao = 0-->
+<!--        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('0') == 0">-->
+<!--            ORDER BY dao.block_time desc-->
+<!--        </if>-->
+<!--        <if test="daoSortedReqVo.sortCondition != null and daoSortedReqVo.sortCondition != '' and daoSortedReqVo.sortCondition.compareTo('1') == 0">-->
+<!--            ORDER BY dao.favorite_amount desc-->
+<!--        </if>-->
+<!--        ,`dao`.id desc-->
+<!--    </select>-->
+
+    <select id="selectTokenType" resultType="java.lang.String"
+            parameterType="semios.api.model.vo.req.SearchReqVo">
+        select pay_currency_type
+        from dao
+        where dao.is_together_dao = 0
+        <if test="searchReqVo.searchWord != null and searchReqVo.searchWord != ''">
+            and (
+                LOCATE(#{searchReqVo.searchWord}, pay_currency_type) > 0
+                    or
+                LOCATE(#{searchReqVo.searchWord}, input_token_address) > 0
+                )
+        </if>
+        group by pay_currency_type order by count(pay_currency_type) desc;
+    </select>
+
+    <select id="selectTokenTypeList" resultType="java.lang.String"
+            parameterType="semios.api.model.vo.req.SearchReqVo">
+        select pay_currency_type
+        from dao
+        where dao.is_together_dao = 0
+        <if test="searchReqVo.searchWordList != null and searchReqVo.searchWordList.size > 0">
+            and (
+            <foreach collection="searchReqVo.searchWordList" item="word" separator=" or ">
+                LOCATE(#{word}, pay_currency_type) > 0
+                or
+                LOCATE(#{word}, input_token_address) > 0
+            </foreach>
+            )
+        </if>
+        group by pay_currency_type
+        order by count(pay_currency_type) desc;
     </select>
 
 </mapper>

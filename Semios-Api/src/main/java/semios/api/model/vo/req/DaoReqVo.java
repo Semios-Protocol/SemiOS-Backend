@@ -22,7 +22,7 @@ public class DaoReqVo extends PageVo {
     private String userAddress;
 
     /**
-     * 新建dao为1，其余可以不传或传0
+     * 编辑dao为1，其余可以不传或传0
      */
     private Integer type;
 }

@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -87,7 +88,7 @@ public class CommonUtil {
     }
 
     public static String hexToAscii(String hexStr) {
-        StringBuilder output = new StringBuilder();
+        StringBuilder output = new StringBuilder("");
         for (int i = 0; i < hexStr.length(); i += 2) {
             String str = hexStr.substring(i, i + 2);
             output.append((char) Integer.parseInt(str, 16));
@@ -434,7 +435,14 @@ public class CommonUtil {
 //
 //        System.out.println(calculateStartBlockHeight(duration.toHours()));
 
-        System.out.println(fillLeadingZerosInBytes32("0"));
+        // System.out.println(fillLeadingZerosInBytes32("0"));
+
+        SecureRandom random = new SecureRandom(); // Compliant for security-sensitive use cases
+        byte[] bytes = new byte[20];
+        random.nextBytes(bytes);
+
+        int i = random.nextInt(32) + 1;
+        System.out.println(i);
     }
 }
 

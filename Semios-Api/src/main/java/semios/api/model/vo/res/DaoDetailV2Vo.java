@@ -336,6 +336,53 @@ public class DaoDetailV2Vo implements Serializable {
      */
     private Integer isAncestorDao;
 
+    /**
+     * 1.12 maker信息
+     */
+    private TogetherDaoMakerVo togetherDaoMakerVo;
+
+    public void setDaoAssetPool(Float daoAssetPool) {
+        if (daoAssetPool != null) {
+            this.daoAssetPool = daoAssetPool;
+        }
+    }
+
+    public void setWorkNumber(Integer workNumber) {
+        if (workNumber != null) {
+            this.workNumber = workNumber;
+        }
+    }
+
+    public void setNftNumber(Integer nftNumber) {
+        if (nftNumber != null) {
+            this.nftNumber = nftNumber;
+        }
+    }
+
+    public void setFavoriteAmount(Integer favoriteAmount) {
+        if (favoriteAmount != null) {
+            this.favoriteAmount = favoriteAmount;
+        }
+    }
+
+    public void setDaoToken(Long daoToken) {
+        if (daoToken != null) {
+            this.daoToken = daoToken;
+        }
+    }
+
+    public void setMintRevenue(Double mintRevenue) {
+        if (mintRevenue != null) {
+            this.mintRevenue = mintRevenue;
+        }
+    }
+
+    public void setTotalNftCasting(Integer totalNftCasting) {
+        if (totalNftCasting != null) {
+            this.totalNftCasting = totalNftCasting;
+        }
+    }
+
     public static DaoDetailV2Vo transfer(Dao dao, DaoDrbStatistics daoDrbStatistics) {
         DaoDetailV2Vo daoDetailVo = new DaoDetailV2Vo();
         daoDetailVo.setDaoId(dao.getId());
@@ -490,47 +537,5 @@ public class DaoDetailV2Vo implements Serializable {
 //        System.out.println(startDateTime);
 //        System.out.println(localTime);
 //        System.out.println(startDateTime - localTime);
-    }
-
-    public void setDaoAssetPool(Float daoAssetPool) {
-        if (daoAssetPool != null) {
-            this.daoAssetPool = daoAssetPool;
-        }
-    }
-
-    public void setWorkNumber(Integer workNumber) {
-        if (workNumber != null) {
-            this.workNumber = workNumber;
-        }
-    }
-
-    public void setNftNumber(Integer nftNumber) {
-        if (nftNumber != null) {
-            this.nftNumber = nftNumber;
-        }
-    }
-
-    public void setFavoriteAmount(Integer favoriteAmount) {
-        if (favoriteAmount != null) {
-            this.favoriteAmount = favoriteAmount;
-        }
-    }
-
-    public void setDaoToken(Long daoToken) {
-        if (daoToken != null) {
-            this.daoToken = daoToken;
-        }
-    }
-
-    public void setMintRevenue(Double mintRevenue) {
-        if (mintRevenue != null) {
-            this.mintRevenue = mintRevenue;
-        }
-    }
-
-    public void setTotalNftCasting(Integer totalNftCasting) {
-        if (totalNftCasting != null) {
-            this.totalNftCasting = totalNftCasting;
-        }
     }
 }

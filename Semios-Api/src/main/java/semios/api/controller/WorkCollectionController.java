@@ -16,19 +16,14 @@ import semios.api.model.entity.Dao;
 import semios.api.model.entity.Favorites;
 import semios.api.model.entity.Work;
 import semios.api.model.enums.FavoriteTypeEnum;
-import semios.api.model.vo.req.DaoSortedReqVo;
-import semios.api.model.vo.req.SearchReqVo;
-import semios.api.model.vo.req.UserProfilePageReqVo;
-import semios.api.model.vo.req.WorkId;
+import semios.api.model.vo.req.*;
 import semios.api.model.vo.req.WorkInfo.WorkCurrentWindow;
 import semios.api.model.vo.req.WorkInfo.WorkInfo;
 import semios.api.model.vo.res.BaseWorkVo.BaseWorkListVo;
 import semios.api.service.IDaoService;
 import semios.api.service.IFavoritesService;
 import semios.api.service.IWorkService;
-import semios.api.utils.BeanUtil;
-import semios.api.utils.CommonUtil;
-import semios.api.utils.CookieUtil;
+import semios.api.utils.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -57,7 +52,7 @@ public class WorkCollectionController {
 
 
     /**
-     * 1.9.1 explore下nft列表与dao详情内的nft列表
+     * 1.12 explore下nft列表与dao详情内的nft列表
      * 原来的work/explore/nfts和/dao/nfts
      */
     @PostMapping(value = "/nft/list")
@@ -104,7 +99,7 @@ public class WorkCollectionController {
 
 
     /**
-     * 1.9.1 explore下Mintable Works列表与dao详情内的Mintable Works
+     * 1.12 explore下Mintable Works列表与dao详情内的Mintable Works
      * 原来的work/explore/unmintedWorks和dao/unmintedWorks
      */
     @PostMapping(value = "/works/list")

@@ -27,6 +27,7 @@ import semios.api.model.vo.req.*;
 import semios.api.model.vo.req.DaoExportInfoParam.DaoExportParam;
 import semios.api.model.vo.res.*;
 import semios.api.model.vo.res.DaoExportInfo.DaoExportInfoVo;
+import semios.api.model.vo.res.ExploreFilter.TokenType;
 import semios.api.service.*;
 import semios.api.service.common.CommonService;
 import semios.api.service.feign.ISubscriptionService;
@@ -57,83 +58,49 @@ import java.util.stream.Collectors;
 @RequestMapping("/dao")
 public class DaoController {
 
-    private static final RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private IDaoService daoService;
+
     @Autowired
     private IWorkService workService;
+
     @Autowired
     private IDaoDrbStatisticsService daoDrbStatisticsService;
+
     @Autowired
     private ICanvasDrbStatisticsService canvasDrbStatisticsService;
+
     @Autowired
     private S3Service s3Service;
+
     @Autowired
     private ICanvasService canvasService;
+
     @Autowired
     private IFavoritesService favoritesService;
+
     @Autowired
     private IUserService userService;
+
     @Autowired
     private IDaoStrategyService daoStrategyService;
+
     @Autowired
     private IWhiteListService whiteListService;
+
     @Autowired(required = false)
     private ISubscriptionService subscriptionService;
+
     @Autowired
     private IDaoAllocationStrategyService daoAllocationStrategyService;
+
     @Autowired
     private IWorkTopupHarvestService workTopupHarvestService;
+
     @Autowired
     private CommonService commonService;
 
-    /**
-     * main方法
-     *
-     * @param args
-     * @throws Exception
-     */
-    public static void main(String[] args) throws Exception {
-
-
-//        BigDecimal bigDecimal = new BigDecimal("6");
-//        String canvasId = Hash.sha3("sidhfsdfo");
-//        System.out.println(canvasId);
-//        String daoLogo = "abcd.txt";
-//        String suf = daoLogo.substring(daoLogo.lastIndexOf("."));
-//        System.out.println(daoLogo.substring(daoLogo.lastIndexOf(".")));
-//        System.out.println(suf.substring(1));
-//        Dao dao = new Dao();
-//        dao.setDaoUri("https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/dao/Nf2XhkrYNBP7ZGru4DiwQ79875.json");
-//        String daoUriHash = dao.getDaoUri().substring(dao.getDaoUri().lastIndexOf("/") + 1, dao.getDaoUri().lastIndexOf("."));
-//        System.out.println(daoUriHash);
-//        dao.setOwnerAddress("0x56dba60a326c8a1e1ed148486a2695884aa34e3b");
-//        String canvasId = CommonUtil.removeHexPrefixIfExists(Hash.sha3(daoUriHash + dao.getOwnerAddress()));
-//        System.out.println(canvasId);
-
-        String proof = "{\"tree\":[\"0x3f672c4ab3c5fbe23de6cca79930a5ca238b06d6cffc2367e48f5a1919638aa2\",\"0x1625d8fdf989774ecd7405db4874f9c8bb88e93aa6053b5d498f1cc12344f0d8\",\"0xf68e52d4f3b3263aaeae567d9308780b11440942da841ef405350e1d79d170f1\",\"0xffa7b9cc247268eae3b8a65cff4cbcc8ef6e671591022019cbbe58cca485d744\",\"0x7e85c49f26ab11fd3f0dd0cd72a06c40c49118585a5ae22aa70d879125c657ca\",\"0x755bd276e5ecf25fd21264f76e232ac456e1636927b51fa1a47f471d421f882c\",\"0x1075d30a5ffef80d593faea4249a32da0d4e196ca0929e0b0c264b4500facd08\"],\"values\":[{\"value\":\"0x130ab1cd93fcbfca39ebc207846344231f00667a\",\"treeIndex\":6},{\"value\":\"0xb90b90225e628188a16c1ab2ffbd8372e49b39df\",\"treeIndex\":3},{\"value\":\"0xc8fc1a79f17f11c1cdcb261b759d9886b5fb868d\",\"treeIndex\":5},{\"value\":\"0xf8baf7268f3daefe4135f7711473ae8b6c3b47d8\",\"treeIndex\":4}]}";
-        MerkleTree mt = JacksonUtil.json2pojo(proof, MerkleTree.class);
-        for (LeafValue leaf : mt.getValues()) {
-            if (leaf.getValue().equals("0xf8baf7268f3daefe4135f7711473ae8b6c3b47d8")) {
-                System.out.println(MerkleTree.getProof(mt.getTree(), leaf.getTreeIndex()));
-            }
-        }
-
-//        String originAddress = "[\"0x130ab1cd93fcbfca39ebc207846344231f00667a\",\"0xb90b90225e628188a16c1ab2ffbd8372e49b39df\",\"0xc8fc1a79f17f11c1cdcb261b759d9886b5fb868d\",\"0xf8baf7268f3daefe4135f7711473ae8b6c3b47d8\"]";
-//        List<String> list = CommonUtil.checkAddress(originAddress);
-//        MerkleTree mt = new MerkleTree(list);
-//        mt.init();
-//        String rootHash = mt.getRootHash();
-//
-//        // mintingWhiteList.setOriginAddress(daoWhiteListReqVo.getMintingOriginAddress());
-//        System.out.println((JacksonUtil.obj2json(list)));
-//        // mintingWhiteList.setProof(daoWhiteListReqVo.getMintingMerkleProof());
-//        System.out.println(JacksonUtil.obj2json(mt));
-//        System.out.println(rootHash);
-
-        int count = 1;
-        System.out.println(count > 0 && count < 1);
-    }
+    private static final RestTemplate restTemplate = new RestTemplate();
 
     /**
      * 展示7日内交易总金额最高的三个DAO
@@ -770,8 +737,9 @@ public class DaoController {
 
     }
 
+
     /**
-     * 1.6.1 explore下的seedNodes列表
+     * 1.12 explore下的seedNodes列表
      */
     @PostMapping(value = "/seedNodes")
     public Result<SeedNodesListVo> daoExploreSeedNodes(@RequestBody(required = false) DaoSortedReqVo daoSortedReqVo,
@@ -2043,7 +2011,7 @@ public class DaoController {
             Date yesterday = DateUtil.addDay(new Date(), -1);
             LocalDate dateParam = LocalDate.parse(sdf.format(yesterday), df);
             String yesterdayTime = DateUtil.getThisDayBeginTime(dateParam);
-            String yesterdayBlockNo = ProtoDaoCommonUtil.timestampBlockNo(new BigDecimal(yesterdayTime).divide(new BigDecimal("1000"), 0, RoundingMode.UP).toPlainString());
+            String yesterdayBlockNo = ProtoDaoCommonUtil.timestampBlockNo(new BigDecimal(yesterdayTime).divide(new BigDecimal("1000"), 0, BigDecimal.ROUND_UP).toPlainString());
             log.info("[createBasicDao] yesterdayTime:{} yesterdayBlockNo:{} ", yesterdayTime, yesterdayBlockNo);
             if (StringUtils.isNotBlank(yesterdayBlockNo)) {
 
@@ -2142,6 +2110,7 @@ public class DaoController {
         result.setData(daoCreateResVo);
         return result;
     }
+
 
     /**
      * 查询该work是否创建过canvas version_2.0
@@ -2253,6 +2222,7 @@ public class DaoController {
 
     }
 
+
     /**
      * 创建work页面选择Dao后，查询返回Unminted Works及DAO Creator Fee等信息 version_1.1.1-返回使用data数据
      */
@@ -2348,6 +2318,7 @@ public class DaoController {
 
     }
 
+
     /**
      * 1.3 包含除了自己之外所有这一系列DAO下的dao
      */
@@ -2385,6 +2356,7 @@ public class DaoController {
         return result;
 
     }
+
 
     /**
      * 1.3 判断当前用户是否为dao的creator
@@ -2515,6 +2487,7 @@ public class DaoController {
         return result;
     }
 
+
     /**
      * 1.3 查询addWork白名单merkle信息
      */
@@ -2589,8 +2562,6 @@ public class DaoController {
     }
 
 
-    // ========================私有方法分隔线===========================================//
-
     /**
      * 1.11 根据id获取dao的导出信息
      */
@@ -2606,6 +2577,17 @@ public class DaoController {
 
         return daoService.daoExportInfo(daoExportParam);
     }
+
+    /**
+     * 1.12 获取系统中所有的input token type
+     */
+    @PostMapping(value = "/token/type")
+    public Result<TokenType> tokenType(@RequestBody SearchReqVo searchReqVo) {
+        return daoService.selectTokenType(searchReqVo);
+    }
+
+
+    // ========================私有方法分隔线===========================================//
 
     /**
      * 判断用户是否有创建canvas权限
@@ -2875,7 +2857,9 @@ public class DaoController {
         // 应该是用户铸造的而不是用户持有的
         if (dao.getGlobalMintCap() != null && dao.getGlobalMintCap() > 0) {
             int count = workService.selectCountHoldByAddressAndDaoId(userAddress, dao.getId());
-            return count < dao.getGlobalMintCap();
+            if (count >= dao.getGlobalMintCap()) {
+                return false;
+            }
         }
 
         return true;
@@ -2907,7 +2891,11 @@ public class DaoController {
             log.info("[erc721BalanceOf]infura return data:{}", result.getData());
             int count = Integer.valueOf(CommonUtil.hexToTenString(result.getData()));
             if (mintCount == null) {
-                return count != 0;
+                if (count == 0) {
+                    return false;
+                } else {
+                    return true;
+                }
             } else {
                 return count > 0 && count < mintCount;
             }
@@ -2952,6 +2940,7 @@ public class DaoController {
         }
     }
 
+
     /**
      * erc721BalanceOfGreaterThanZero
      *
@@ -2986,6 +2975,7 @@ public class DaoController {
         }
     }
 
+
     /**
      * 下次替换为从合约查询
      * 用这个方法可以查询mint了几次：function getUserMintInfo(bytes32 daoId, address account) public view returns (uint32 minted, uint32 userMintCap)， 返回值中的第一个是已铸造了多少个
@@ -3004,7 +2994,11 @@ public class DaoController {
             int count = workService.selectCountMintByAddressAndDaoId(address, dao.getId());
             log.info("[daoMintCount]daoId:{} count :{}", dao.getId(), count);
             if (mintCount == null) {
-                return count != 0;
+                if (count == 0) {
+                    return false;
+                } else {
+                    return true;
+                }
             } else {
                 return count < mintCount;
             }
@@ -3208,10 +3202,61 @@ public class DaoController {
     private Boolean checkMainDaoOwner(Dao dao, String userAddress) {
         if (StringUtils.isNotBlank(dao.getExistDaoId())) {
             Dao mainDao = daoService.daoDetailByProjectId(dao.getExistDaoId());
-            return mainDao != null && mainDao.getOwnerAddress().equalsIgnoreCase(userAddress);
+            if (mainDao != null && mainDao.getOwnerAddress().equalsIgnoreCase(userAddress)) {
+                return true;
+            }
         } else {
             return dao.getOwnerAddress().equalsIgnoreCase(userAddress);
         }
+        return false;
+    }
+
+    /**
+     * main方法
+     *
+     * @param args
+     * @throws Exception
+     */
+    public static void main(String[] args) throws Exception {
+
+
+//        BigDecimal bigDecimal = new BigDecimal("6");
+//        String canvasId = Hash.sha3("sidhfsdfo");
+//        System.out.println(canvasId);
+//        String daoLogo = "abcd.txt";
+//        String suf = daoLogo.substring(daoLogo.lastIndexOf("."));
+//        System.out.println(daoLogo.substring(daoLogo.lastIndexOf(".")));
+//        System.out.println(suf.substring(1));
+//        Dao dao = new Dao();
+//        dao.setDaoUri("https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/dao/Nf2XhkrYNBP7ZGru4DiwQ79875.json");
+//        String daoUriHash = dao.getDaoUri().substring(dao.getDaoUri().lastIndexOf("/") + 1, dao.getDaoUri().lastIndexOf("."));
+//        System.out.println(daoUriHash);
+//        dao.setOwnerAddress("0x56dba60a326c8a1e1ed148486a2695884aa34e3b");
+//        String canvasId = CommonUtil.removeHexPrefixIfExists(Hash.sha3(daoUriHash + dao.getOwnerAddress()));
+//        System.out.println(canvasId);
+
+        String proof = "{\"tree\":[\"0x3f672c4ab3c5fbe23de6cca79930a5ca238b06d6cffc2367e48f5a1919638aa2\",\"0x1625d8fdf989774ecd7405db4874f9c8bb88e93aa6053b5d498f1cc12344f0d8\",\"0xf68e52d4f3b3263aaeae567d9308780b11440942da841ef405350e1d79d170f1\",\"0xffa7b9cc247268eae3b8a65cff4cbcc8ef6e671591022019cbbe58cca485d744\",\"0x7e85c49f26ab11fd3f0dd0cd72a06c40c49118585a5ae22aa70d879125c657ca\",\"0x755bd276e5ecf25fd21264f76e232ac456e1636927b51fa1a47f471d421f882c\",\"0x1075d30a5ffef80d593faea4249a32da0d4e196ca0929e0b0c264b4500facd08\"],\"values\":[{\"value\":\"0x130ab1cd93fcbfca39ebc207846344231f00667a\",\"treeIndex\":6},{\"value\":\"0xb90b90225e628188a16c1ab2ffbd8372e49b39df\",\"treeIndex\":3},{\"value\":\"0xc8fc1a79f17f11c1cdcb261b759d9886b5fb868d\",\"treeIndex\":5},{\"value\":\"0xf8baf7268f3daefe4135f7711473ae8b6c3b47d8\",\"treeIndex\":4}]}";
+        MerkleTree mt = JacksonUtil.json2pojo(proof, MerkleTree.class);
+        for (LeafValue leaf : mt.getValues()) {
+            if (leaf.getValue().equals("0xf8baf7268f3daefe4135f7711473ae8b6c3b47d8")) {
+                System.out.println(MerkleTree.getProof(mt.getTree(), leaf.getTreeIndex()));
+            }
+        }
+
+//        String originAddress = "[\"0x130ab1cd93fcbfca39ebc207846344231f00667a\",\"0xb90b90225e628188a16c1ab2ffbd8372e49b39df\",\"0xc8fc1a79f17f11c1cdcb261b759d9886b5fb868d\",\"0xf8baf7268f3daefe4135f7711473ae8b6c3b47d8\"]";
+//        List<String> list = CommonUtil.checkAddress(originAddress);
+//        MerkleTree mt = new MerkleTree(list);
+//        mt.init();
+//        String rootHash = mt.getRootHash();
+//
+//        // mintingWhiteList.setOriginAddress(daoWhiteListReqVo.getMintingOriginAddress());
+//        System.out.println((JacksonUtil.obj2json(list)));
+//        // mintingWhiteList.setProof(daoWhiteListReqVo.getMintingMerkleProof());
+//        System.out.println(JacksonUtil.obj2json(mt));
+//        System.out.println(rootHash);
+
+        int count = 1;
+        System.out.println(count > 0 && count < 1);
     }
 
 }

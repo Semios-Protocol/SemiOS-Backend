@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Update;
 import semios.api.model.entity.Dao;
 import semios.api.model.entity.DaoDrbStatistics;
 import semios.api.model.vo.req.DaoSortedReqVo;
+import semios.api.model.vo.req.SearchReqVo;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -168,7 +169,7 @@ public interface DaoMapper extends BaseMapper<Dao> {
     List<Dao> listAll();
 
     @Select("select * from dao where project_id = #{projectId} AND is_together_dao=#{isTogetherDao} limit 1")
-    Dao getDaoByProjectId(String projectId,Integer isTogetherDao);
+    Dao getDaoByProjectId(String projectId, Integer isTogetherDao);
 
     @Select("select * from dao where id = (select together_dao_id from dao where project_id = #{projectId} AND is_together_dao=0 limit 1)")
     Dao getTogetherDaoBySubDaoProjectId(String projectId);
@@ -190,5 +191,9 @@ public interface DaoMapper extends BaseMapper<Dao> {
             + "                left join dao_drb_statistics as dds on dda.id = dds.id  \n"
             + "                where dao.dao_status > 0  and dao.dao_status != 3 and dao.is_together_dao = 0 and (dao.dao_name like concat('%', #{searchId}, '%') or dao.dao_manitesto like concat('%', #{searchId}, '%') or dao.dao_description like concat('%', #{searchId}, '%') or owner_address like concat('%', #{searchId}, '%'))\n"
             + "                order by ord desc,dao.block_time desc ")
-    Page<Dao> searchDao(IPage<Dao> page,String searchId);
+    Page<Dao> searchDao(IPage<Dao> page, String searchId);
+
+    List<String> selectTokenType(@Param("searchReqVo") SearchReqVo searchReqVo);
+
+    List<String> selectTokenTypeList(@Param("searchReqVo") SearchReqVo searchReqVo);
 }

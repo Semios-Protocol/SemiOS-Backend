@@ -43,11 +43,12 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class NewSemiDaoErc721AddressChainService implements SubscriberChainService {
 
-    private static final RestTemplate restTemplate = new RestTemplate();
     @Resource
     private IDaoService daoService;
+
     @Resource
     private ICanvasService canvasService;
+
     @Resource
     private INodePermissionNftService nodePermissionNftService;
     @Value("${work_image_url}")
@@ -56,7 +57,10 @@ public class NewSemiDaoErc721AddressChainService implements SubscriberChainServi
     private IWorkService workService;
     @Autowired
     private S3Service s3Service;
-    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+
+    private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+
+    private static final RestTemplate restTemplate = new RestTemplate();
 
     @Override
     public void handleTrade(TransactionDto transactionDto) throws Exception {
@@ -188,7 +192,7 @@ public class NewSemiDaoErc721AddressChainService implements SubscriberChainServi
             mintWorkUriDto.setName(dao.getDaoName() + ".0");
             mintWorkUriDto.setMintedAddress(dao.getOwnerAddress());
 
-            String imageName = dao.getDaoNumber() + "-" + 0;
+            String imageName = dao.getDaoNumber() + "-" + 0 + "";
             String fileName = imageName + ".json";
             String s3FileName =
                     urlPrefix + ProtoDaoConstant.metaBucketName + ProtoDaoConstant.workBucketName + "/" + fileName;
@@ -229,6 +233,7 @@ public class NewSemiDaoErc721AddressChainService implements SubscriberChainServi
             // 一口价 0.01
             work.setPriceType(WorkPriceTypeEnum.FIXED_PRICE.getType());
             if (dao.getGlobalDaoPrice() != null && dao.getGlobalDaoPrice().compareTo(BigDecimal.ZERO) >= 0) {
+                work.setPriceType(WorkPriceTypeEnum.DAO_GLOBAL_PRICE.getType());
                 work.setFixedPrice(dao.getGlobalDaoPrice());
             } else {
                 work.setFixedPrice(dao.getDaoFloorPrice());

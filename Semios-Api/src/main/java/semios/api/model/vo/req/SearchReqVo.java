@@ -2,6 +2,9 @@ package semios.api.model.vo.req;
 
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @description: search参数
  * @author: xiangbin
@@ -30,4 +33,11 @@ public class SearchReqVo {
      * 当前页数
      */
     private Long pageNo = 1L;
+
+    /**
+     * 搜索参数
+     *
+     * @ignore
+     */
+    private List<String> searchWordList = new ArrayList<>();
 }

@@ -1,0 +1,434 @@
+[
+  {
+    "id": 1,
+    "price_type": 1,
+    "fixed_price": 3.000000,
+    "global_dao_price": 3.000000
+  },
+  {
+    "id": 1,
+    "price_type": 1,
+    "fixed_price": 3.000000,
+    "global_dao_price": 3.000000
+  },
+  {
+    "id": 1,
+    "price_type": 1,
+    "fixed_price": 3.000000,
+    "global_dao_price": 3.000000
+  },
+  {
+    "id": 6,
+    "price_type": 1,
+    "fixed_price": 0.007000,
+    "global_dao_price": 0.007000
+  },
+  {
+    "id": 8,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 8,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 10,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 10,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 10,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 19,
+    "price_type": 1,
+    "fixed_price": 0.012000,
+    "global_dao_price": 0.012000
+  },
+  {
+    "id": 19,
+    "price_type": 1,
+    "fixed_price": 0.012000,
+    "global_dao_price": 0.012000
+  },
+  {
+    "id": 19,
+    "price_type": 1,
+    "fixed_price": 0.000000,
+    "global_dao_price": 0.012000
+  },
+  {
+    "id": 19,
+    "price_type": 1,
+    "fixed_price": 0.012000,
+    "global_dao_price": 0.012000
+  },
+  {
+    "id": 19,
+    "price_type": 1,
+    "fixed_price": 0.000000,
+    "global_dao_price": 0.012000
+  },
+  {
+    "id": 19,
+    "price_type": 1,
+    "fixed_price": 0.000000,
+    "global_dao_price": 0.012000
+  },
+  {
+    "id": 19,
+    "price_type": 1,
+    "fixed_price": 0.000000,
+    "global_dao_price": 0.012000
+  },
+  {
+    "id": 19,
+    "price_type": 1,
+    "fixed_price": 0.000000,
+    "global_dao_price": 0.012000
+  },
+  {
+    "id": 19,
+    "price_type": 1,
+    "fixed_price": 0.000000,
+    "global_dao_price": 0.012000
+  },
+  {
+    "id": 19,
+    "price_type": 1,
+    "fixed_price": 0.000000,
+    "global_dao_price": 0.012000
+  },
+  {
+    "id": 21,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 21,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 23,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 23,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 25,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.123400
+  },
+  {
+    "id": 25,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.123400
+  },
+  {
+    "id": 25,
+    "price_type": 1,
+    "fixed_price": 0.000000,
+    "global_dao_price": 2.123400
+  },
+  {
+    "id": 29,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 29,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 29,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 33,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 33,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 33,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 33,
+    "price_type": 1,
+    "fixed_price": 0.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 37,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 37,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 41,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 41,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 43,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 43,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 45,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 45,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 46,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 46,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 48,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 48,
+    "price_type": 1,
+    "fixed_price": 2.000000,
+    "global_dao_price": 2.000000
+  },
+  {
+    "id": 68,
+    "price_type": 1,
+    "fixed_price": 0.000000,
+    "global_dao_price": 0.000000
+  },
+  {
+    "id": 68,
+    "price_type": 1,
+    "fixed_price": 0.000000,
+    "global_dao_price": 0.000000
+  },
+  {
+    "id": 83,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 83,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 85,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 85,
+    "price_type": 1,
+    "fixed_price": 0.010000,
+    "global_dao_price": 0.010000
+  },
+  {
+    "id": 87,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 87,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 88,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 88,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 89,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 89,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 91,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 91,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 92,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 92,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 93,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 93,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 94,
+    "price_type": 1,
+    "fixed_price": 0.000900,
+    "global_dao_price": 0.000900
+  },
+  {
+    "id": 94,
+    "price_type": 1,
+    "fixed_price": 0.000900,
+    "global_dao_price": 0.000900
+  },
+  {
+    "id": 97,
+    "price_type": 1,
+    "fixed_price": 0.000000,
+    "global_dao_price": 0.000000
+  },
+  {
+    "id": 97,
+    "price_type": 1,
+    "fixed_price": 0.000000,
+    "global_dao_price": 0.000000
+  },
+  {
+    "id": 98,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 98,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 99,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 99,
+    "price_type": 1,
+    "fixed_price": 0.100000,
+    "global_dao_price": 0.100000
+  },
+  {
+    "id": 19,
+    "price_type": 2,
+    "fixed_price": 0.012000,
+    "global_dao_price": 0.012000
+  }
+]

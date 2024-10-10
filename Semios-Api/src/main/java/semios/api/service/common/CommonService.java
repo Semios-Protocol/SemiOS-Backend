@@ -24,6 +24,7 @@ import semios.api.model.dto.request.InfuraCallRequestDto;
 import semios.api.model.dto.response.MintWorkUriDto;
 import semios.api.model.entity.*;
 import semios.api.model.enums.*;
+import semios.api.model.vo.req.SearchReqVo;
 import semios.api.model.vo.req.WorkCreateReqVo;
 import semios.api.model.vo.res.BasicInformationVo;
 import semios.api.model.vo.res.MintWindowInfoVo;
@@ -37,8 +38,12 @@ import semios.api.utils.ProtoDaoCommonUtil;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -121,20 +126,6 @@ public class CommonService {
 
     @Autowired
     private IDaoAllocationStrategyService daoAllocationStrategyService;
-
-    public static void main(String[] args) throws Exception {
-//        String requestParam = String.format("{\"query\":\"query MyQuery($network:EthereumNetwork,$tokenAddress:String,$receiver:String,$startTime:ISO8601DateTime,$endTime:ISO8601DateTime) {\\n  ethereum(network: $network) {\\n    transfers(\\n      sender: {is: $receiver}\\n      currency: {is: $tokenAddress}\\n      time: {since: $startTime, till: $endTime}\\n      amount: {gt: 0}\\n    ) {\\n      amount(calculate: sum)\\n    }\\n  }\\n}\\n\",\"variables\":{\"network\":\"%s\",\"startTime\":\"%sT00:00:00Z\",\"endTime\":\"2%sT00:00:00Z\",\"receiver\":\"%s\",\"tokenAddress\":\"%s\"}}", ProtoDaoConstant.netWork, "2024-01-15", "2024-01-16", "0x109f6010c83c720e8c67a902e5269680e2d6da6e", "0xf3452b81d6a2f962dbf688b58a86e9653adcc69e");
-//        String requestParam = "{\\\"query\\\":\\\"query MyQuery($network:EthereumNetwork,$tokenAddress:String,$receiver:String,$startTime:ISO8601DateTime,$endTime:ISO8601DateTime) {\\n  ethereum(network: $network) {\\n    transfers(\\n      sender: {is: $receiver}\\n      currency: {is: $tokenAddress}\\n      time: {since: $startTime, till: $endTime}\\n      amount: {gt: 0}\\n    ) {\\n      amount(calculate: sum)\\n    }\\n  }\\n}\\n\\\",\\\"variables\\\":{\\\"network\\\":\\\"goerli\\\",\\\"startTime\\\":\\\"2024-01-15T00:00:00Z\\\",\\\"endTime\\\":\\\"22024-01-16T00:00:00Z\\\",\\\"receiver\\\":\\\"0x8c17f639c2c1f9f8a836ae781440dc6ed274537f\\\",\\\"tokenAddress\\\":\\\"0xf3452b81d6a2f962dbf688b58a86e9653adcc69e\\\"}}";
-//        requestParam = requestParam.replaceAll("\\\\", "");
-////                requestParam = URLEncoder.encode(requestParam, "utf8");
-//        System.out.println(requestParam);
-
-        String requestParam = "{\"query\":\"query ($network: EthereumNetwork!, $from: ISO8601DateTime, $to: ISO8601DateTime, $receiver: String,$token: [String!] ) {\\n  ethereum(network: $network) {\\n    transfers(\\n      receiver: {is: $receiver}\\n      currency: {in: $token}\\n      time: {since: $from, till: $to}\\n      options: {asc: qwert\"currency.symbolqwert\"}\\n    ) {\\n      amount(calculate: sum)\\n      currency {\\n        symbol\\n      }\\n    }\\n  }\\n}\\n\",\"variables\":\"{\\n  \\\"network\\\": \\\"%s\\\",\\n  \\\"from\\\": \\\"%sT00:00:00Z\\\",\\n  \\\"to\\\": \\\"%sT00:00:00Z\\\",\\n  \\\"receiver\\\":\\\"%s\\\",\\n  \\\"token\\\":\\\"%s\\\"\\n}\"}";
-
-        requestParam = requestParam.replaceAll("qwert", "\\\\");
-        requestParam = requestParam.replaceAll("\n", "");
-        System.out.println(requestParam);
-    }
 
     public void handleDaoDrbStatistics(List<DaoDrbStatistics> daoDrbStatisticsList, Integer drbNumber) {
         // ****注意*****不包括轮空区块  1.9改为包括轮空区块了
@@ -499,7 +490,12 @@ public class CommonService {
     public User newUser(String userAddress) {
         User user = new User();
         user.setUserAddress(CommonUtil.addHexPrefixIfNotExist(userAddress));
-        Random random = new Random();
+        // Random random = new Random();
+
+        SecureRandom random = new SecureRandom(); // Compliant for security-sensitive use cases
+        byte[] bytes = new byte[20];
+        random.nextBytes(bytes);
+
         int i = random.nextInt(32) + 1;
         String avatar = String.format(headImage, i);
         user.setAvatarAddress(avatar);
@@ -914,6 +910,7 @@ public class CommonService {
 
     }
 
+
     /**
      * 根据当前DRB 计算下一个DRB开始的区块高度，并赋值给Dao4ArtConstant.NEXT_DRB_START_BLOCK
      *
@@ -992,6 +989,7 @@ public class CommonService {
         }
 
     }
+
 
     //要不要在canvas页面去做work的生成呢
     public boolean addWork(Dao dao, Canvas canvas, Integer workNumber) {
@@ -1075,7 +1073,7 @@ public class CommonService {
             WorkCreateReqVo workCreateReqVo = new WorkCreateReqVo();
             workCreateReqVo.setImageUrl(imageUrl);
             MintWorkUriDto mintWorkUriDto = MintWorkUriDto.transfer(workCreateReqVo);
-            String imageName = dao.getDaoNumber() + "-" + workNumber;
+            String imageName = dao.getDaoNumber() + "-" + workNumber + "";
             String fileName = imageName + ".json";
             String s3FileName =
                     urlPrefix + ProtoDaoConstant.metaBucketName + ProtoDaoConstant.workBucketName + "/" + fileName;
@@ -1117,12 +1115,20 @@ public class CommonService {
                 work.setOwnerAddress(dao.getOwnerAddress());
                 work.setGenerate(1);
                 // 一口价 0.01
-                work.setPriceType(WorkPriceTypeEnum.FIXED_PRICE.getType());
+                // 根据node判断pass卡价格类型
                 if (dao.getGlobalDaoPrice() != null && dao.getGlobalDaoPrice().compareTo(BigDecimal.ZERO) >= 0) {
-                    work.setFixedPrice(dao.getGlobalDaoPrice());
+                    // TODO 价格赋值要不要取消
+                    // node的全局一口价和地板价变动之后，可能会影响到价格排序问题
+                    // work.setFixedPrice(dao.getGlobalDaoPrice());
+                    work.setPriceType(WorkPriceTypeEnum.DAO_GLOBAL_PRICE.getType());  // 全局一口价类型
                 } else {
+                    work.setPriceType(WorkPriceTypeEnum.FIXED_PRICE.getType());
                     work.setFixedPrice(dao.getDaoFloorPrice());
                 }
+//                if (dao.getGlobalDaoPrice() != null && dao.getGlobalDaoPrice().compareTo(BigDecimal.ZERO) >= 0) {
+//                    work.setPriceType(WorkPriceTypeEnum.DAO_GLOBAL_PRICE.getType());  // 全局一口价类型
+//                }
+
 
                 workService.save(work);
             } else {
@@ -1138,16 +1144,6 @@ public class CommonService {
     }
 
 
-//    public void updateTopupModeMinterHarvest(Integer drb) {
-//        List<Work> workList = workService.selectTopupWorkForCal(drb);
-//        for (Work work : workList) {
-//            Dao dao = daoService.getById(work.getDaoId());
-//            String projectId = StringUtils.isBlank(dao.getExistDaoId()) ? dao.getProjectId() : dao.getExistDaoId();
-//            updateMinterTopupHarvest(projectId, work.getMintedAddress());
-//
-//        }
-//    }
-
     public Double nextDrbStartTime() {
         JSONObject jsonObject = ProtoDaoCommonUtil.blockTime(String.valueOf(ProtoDaoConstant.NEXT_DRB_START_BLOCK));
         if (jsonObject == null) {
@@ -1157,6 +1153,17 @@ public class CommonService {
         Double nextPrbStartTime = jsonObject.getDouble("EstimateTimeInSec");
         return nextPrbStartTime;
     }
+
+
+//    public void updateTopupModeMinterHarvest(Integer drb) {
+//        List<Work> workList = workService.selectTopupWorkForCal(drb);
+//        for (Work work : workList) {
+//            Dao dao = daoService.getById(work.getDaoId());
+//            String projectId = StringUtils.isBlank(dao.getExistDaoId()) ? dao.getProjectId() : dao.getExistDaoId();
+//            updateMinterTopupHarvest(projectId, work.getMintedAddress());
+//
+//        }
+//    }
 
     public void updateMinterWorkTopupHarvest(String projectId, Integer workId, Dao mountDao, Work mountWork) {
         // dao_id-->dao.projectID
@@ -1229,6 +1236,7 @@ public class CommonService {
 
     }
 
+
     public void updateMinterWorkTopupHarvest(String projectId, Integer mountWorkId) {
         try {
             WorkTopupHarvest workTopupHarvest = workTopupHarvestService.selectByProjectIdAndMountWorkId(projectId, mountWorkId);
@@ -1288,6 +1296,46 @@ public class CommonService {
     }
 
 
+    public WorkTopupHarvest updateOnChainWorkTopupHarvest(WorkTopupHarvest workTopupHarvest, Dao dao) throws Exception {
+        // 更新work_topup_harvest表中的on chain...(input token,output token amount)
+        InfuraCallRequestDto infuraCallRequestDto = new InfuraCallRequestDto();
+        infuraCallRequestDto.setNetWork(ProtoDaoConstant.netWork);
+        infuraCallRequestDto.setTo(ContractMethodEnum.GET_TOP_UP_BALANCE.getContractAddress());
+        infuraCallRequestDto.setFrom(ProtoDaoConstant.ZERO_ADDRESS); // 已确认，任何地址都可以调
+        infuraCallRequestDto.setData(ContractMethodEnum.GET_TOP_UP_BALANCE.getMethodAddress()
+                + workTopupHarvest.getProjectId()
+                + CommonUtil.fillLeadingZerosInBytes32(CommonUtil.removeHexPrefixIfExists(workTopupHarvest.getMountErc721Address()))
+                + CommonUtil.fillLeadingZerosInBytes32(CommonUtil.removeHexPrefixIfExists(CommonUtil.tenToHex(workTopupHarvest.getMountWorkNumber())))
+        );
+
+        log.info("[updateOnChainWorkTopupHarvest]调用获取钱包余额的参数:" + JacksonUtil.obj2json(infuraCallRequestDto));
+        Result<String> result = iSubscriptionService.infuraCall(infuraCallRequestDto);
+        if (result.getResultCode() != ResultDesc.SUCCESS.getResultCode()) {
+            log.error("[updateOnChainWorkTopupHarvest] 调用获取钱包余额error result:{},调用的参数为:{}", result.getData(), JacksonUtil.obj2json(infuraCallRequestDto));
+            return null;
+        }
+        List<String> dataList = CommonUtil.splitBy32Bytes(result.getData());
+        String ethAmount = CommonUtil.hexToTenString(dataList.get(0));
+        String erc20Amount = CommonUtil.hexToTenString(dataList.get(1));
+        log.info("[updateOnChainWorkTopupHarvest] 获取到的余额erc20Amount:{},获取到的余额ethAmount:{}", erc20Amount, ethAmount);
+
+        // 外部erc20和内部的余数不一致,只有erc20需要除,eth一直除18
+        if (dao.getIsThirdpartyToken().equals(1) && dao.getErc20TokenDecimals() != null) {
+            // 如果绑定的dao是外部的erc20token
+            String decimals = erc20Decimals(dao.getErc20Token());
+            if (StringUtils.isBlank(decimals)) {
+                log.error("[updateOnChainWorkTopupHarvest] mountDao:{} getDecimals error", dao.getId());
+            } else {
+                workTopupHarvest.setOutputTokenAmount(new BigDecimal(erc20Amount).divide(new BigDecimal("10").pow(Integer.parseInt(decimals))));
+            }
+        } else {
+            workTopupHarvest.setOutputTokenAmount(new BigDecimal(erc20Amount).divide(CommonUtil.getPowBigDecimal(dao.getErc20TokenDecimals()), 18, RoundingMode.FLOOR));
+        }
+        workTopupHarvest.setInputTokenAmount(new BigDecimal(ethAmount).divide(CommonUtil.getPowBigDecimal(dao.getInputTokenDecimals()), 18, RoundingMode.FLOOR));
+        return workTopupHarvest;
+    }
+
+
     // 已废弃
 //    public void updateMinterTopupHarvest(String projectId, String userAddress) {
 //
@@ -1337,44 +1385,6 @@ public class CommonService {
 //
 //    }
 
-    public WorkTopupHarvest updateOnChainWorkTopupHarvest(WorkTopupHarvest workTopupHarvest, Dao dao) throws Exception {
-        // 更新work_topup_harvest表中的on chain...(input token,output token amount)
-        InfuraCallRequestDto infuraCallRequestDto = new InfuraCallRequestDto();
-        infuraCallRequestDto.setNetWork(ProtoDaoConstant.netWork);
-        infuraCallRequestDto.setTo(ContractMethodEnum.GET_TOP_UP_BALANCE.getContractAddress());
-        infuraCallRequestDto.setFrom(ProtoDaoConstant.ZERO_ADDRESS); // 已确认，任何地址都可以调
-        infuraCallRequestDto.setData(ContractMethodEnum.GET_TOP_UP_BALANCE.getMethodAddress()
-                + workTopupHarvest.getProjectId()
-                + CommonUtil.fillLeadingZerosInBytes32(CommonUtil.removeHexPrefixIfExists(workTopupHarvest.getMountErc721Address()))
-                + CommonUtil.fillLeadingZerosInBytes32(CommonUtil.removeHexPrefixIfExists(CommonUtil.tenToHex(workTopupHarvest.getMountWorkNumber())))
-        );
-
-        log.info("[updateOnChainWorkTopupHarvest]调用获取钱包余额的参数:" + JacksonUtil.obj2json(infuraCallRequestDto));
-        Result<String> result = iSubscriptionService.infuraCall(infuraCallRequestDto);
-        if (result.getResultCode() != ResultDesc.SUCCESS.getResultCode()) {
-            log.error("[updateOnChainWorkTopupHarvest] 调用获取钱包余额error result:{},调用的参数为:{}", result.getData(), JacksonUtil.obj2json(infuraCallRequestDto));
-            return null;
-        }
-        List<String> dataList = CommonUtil.splitBy32Bytes(result.getData());
-        String ethAmount = CommonUtil.hexToTenString(dataList.get(0));
-        String erc20Amount = CommonUtil.hexToTenString(dataList.get(1));
-        log.info("[updateOnChainWorkTopupHarvest] 获取到的余额erc20Amount:{},获取到的余额ethAmount:{}", erc20Amount, ethAmount);
-
-        // 外部erc20和内部的余数不一致,只有erc20需要除,eth一直除18
-        if (dao.getIsThirdpartyToken().equals(1) && dao.getErc20TokenDecimals() != null) {
-            // 如果绑定的dao是外部的erc20token
-            String decimals = erc20Decimals(dao.getErc20Token());
-            if (StringUtils.isBlank(decimals)) {
-                log.error("[updateOnChainWorkTopupHarvest] mountDao:{} getDecimals error", dao.getId());
-            } else {
-                workTopupHarvest.setOutputTokenAmount(new BigDecimal(erc20Amount).divide(new BigDecimal("10").pow(Integer.parseInt(decimals))));
-            }
-        } else {
-            workTopupHarvest.setOutputTokenAmount(new BigDecimal(erc20Amount).divide(CommonUtil.getPowBigDecimal(dao.getErc20TokenDecimals()), 18, RoundingMode.FLOOR));
-        }
-        workTopupHarvest.setInputTokenAmount(new BigDecimal(ethAmount).divide(CommonUtil.getPowBigDecimal(dao.getInputTokenDecimals()), 18, RoundingMode.FLOOR));
-        return workTopupHarvest;
-    }
 
     public BigDecimal erc20BalanceOf(String erc20Address, String feePoolAddress, Integer bigdecimal, Integer inputTokenDecimal) {
 
@@ -1478,6 +1488,7 @@ public class CommonService {
         return BigDecimal.ZERO;
     }
 
+
     public BigDecimal getRoundErc20Reward(Dao dao, Integer round) {
 
         try {
@@ -1536,6 +1547,7 @@ public class CommonService {
         return BigDecimal.ZERO;
     }
 
+
     public BigDecimal getDaoRemainingRound(Dao dao) {
 
         try {
@@ -1568,6 +1580,7 @@ public class CommonService {
         }
         return BigDecimal.ZERO;
     }
+
 
     public BigDecimal getDaoLastActiveRound(Dao dao) {
 
@@ -1650,6 +1663,7 @@ public class CommonService {
         return BigDecimal.ZERO.toPlainString();
     }
 
+
     public MintWindowInfoVo getMintWindowInfoVo(Dao dao) {
         MintWindowInfoVo mintWindowInfoVo = new MintWindowInfoVo();
 
@@ -1717,6 +1731,7 @@ public class CommonService {
         return mintWindowInfoVo;
     }
 
+
     public BasicInformationVo getBasicInformationVo(Dao dao) {
 
         BasicInformationVo basicInformationVo = new BasicInformationVo();
@@ -1770,6 +1785,7 @@ public class CommonService {
         return remainderEth;
     }
 
+
     public Double blockNoStartTime(String blockNo) {
         //获取当前区块，获取总区块数
         Result<String> result = iSubscriptionService.queryBlockTime(ProtoDaoConstant.netWork, blockNo);
@@ -1785,6 +1801,7 @@ public class CommonService {
         }
         return new Double(blockTimeStr);
     }
+
 
     /**
      * 查询erc20的holder数量
@@ -2230,6 +2247,7 @@ public class CommonService {
         return BigDecimal.ZERO;
     }
 
+
     public BigDecimal getDaoLastModifyRound(Dao dao) {
 
         try {
@@ -2257,6 +2275,7 @@ public class CommonService {
         }
         return BigDecimal.ZERO;
     }
+
 
     public Boolean getTopUpNftLockedStatus(Dao dao, Work work) {
         try {
@@ -2293,6 +2312,7 @@ public class CommonService {
         return null;
     }
 
+
     // 获取plan的当前周期
     public Integer getPlanCurrentRound(String planCode) {
         InfuraCallRequestDto infuraCallRequestDto = new InfuraCallRequestDto();
@@ -2317,6 +2337,7 @@ public class CommonService {
         return 0;
     }
 
+
     public BigDecimal getPlanNftReward(String planCode, String erc721Token, Integer workNumber, Integer decimal) throws Exception {
         InfuraCallRequestDto infuraCallRequestDto = new InfuraCallRequestDto();
         infuraCallRequestDto.setNetWork(ProtoDaoConstant.netWork);
@@ -2338,5 +2359,26 @@ public class CommonService {
                     rewardResult.getData(), rewardResult.getResultDesc(), planCode, erc721Token, workNumber);
         }
         return BigDecimal.ZERO;
+    }
+
+
+    public List<String> getTokenTypeList(List<String> searchWorkList) {
+        SearchReqVo searchReqVo = new SearchReqVo();
+        searchReqVo.setSearchWordList(searchWorkList);
+        return daoService.selectTokenTypeList(searchReqVo);
+    }
+
+    public static void main(String[] args) throws Exception {
+//        String requestParam = String.format("{\"query\":\"query MyQuery($network:EthereumNetwork,$tokenAddress:String,$receiver:String,$startTime:ISO8601DateTime,$endTime:ISO8601DateTime) {\\n  ethereum(network: $network) {\\n    transfers(\\n      sender: {is: $receiver}\\n      currency: {is: $tokenAddress}\\n      time: {since: $startTime, till: $endTime}\\n      amount: {gt: 0}\\n    ) {\\n      amount(calculate: sum)\\n    }\\n  }\\n}\\n\",\"variables\":{\"network\":\"%s\",\"startTime\":\"%sT00:00:00Z\",\"endTime\":\"2%sT00:00:00Z\",\"receiver\":\"%s\",\"tokenAddress\":\"%s\"}}", ProtoDaoConstant.netWork, "2024-01-15", "2024-01-16", "0x109f6010c83c720e8c67a902e5269680e2d6da6e", "0xf3452b81d6a2f962dbf688b58a86e9653adcc69e");
+//        String requestParam = "{\\\"query\\\":\\\"query MyQuery($network:EthereumNetwork,$tokenAddress:String,$receiver:String,$startTime:ISO8601DateTime,$endTime:ISO8601DateTime) {\\n  ethereum(network: $network) {\\n    transfers(\\n      sender: {is: $receiver}\\n      currency: {is: $tokenAddress}\\n      time: {since: $startTime, till: $endTime}\\n      amount: {gt: 0}\\n    ) {\\n      amount(calculate: sum)\\n    }\\n  }\\n}\\n\\\",\\\"variables\\\":{\\\"network\\\":\\\"goerli\\\",\\\"startTime\\\":\\\"2024-01-15T00:00:00Z\\\",\\\"endTime\\\":\\\"22024-01-16T00:00:00Z\\\",\\\"receiver\\\":\\\"0x8c17f639c2c1f9f8a836ae781440dc6ed274537f\\\",\\\"tokenAddress\\\":\\\"0xf3452b81d6a2f962dbf688b58a86e9653adcc69e\\\"}}";
+//        requestParam = requestParam.replaceAll("\\\\", "");
+////                requestParam = URLEncoder.encode(requestParam, "utf8");
+//        System.out.println(requestParam);
+
+        String requestParam = "{\"query\":\"query ($network: EthereumNetwork!, $from: ISO8601DateTime, $to: ISO8601DateTime, $receiver: String,$token: [String!] ) {\\n  ethereum(network: $network) {\\n    transfers(\\n      receiver: {is: $receiver}\\n      currency: {in: $token}\\n      time: {since: $from, till: $to}\\n      options: {asc: qwert\"currency.symbolqwert\"}\\n    ) {\\n      amount(calculate: sum)\\n      currency {\\n        symbol\\n      }\\n    }\\n  }\\n}\\n\",\"variables\":\"{\\n  \\\"network\\\": \\\"%s\\\",\\n  \\\"from\\\": \\\"%sT00:00:00Z\\\",\\n  \\\"to\\\": \\\"%sT00:00:00Z\\\",\\n  \\\"receiver\\\":\\\"%s\\\",\\n  \\\"token\\\":\\\"%s\\\"\\n}\"}";
+
+        requestParam = requestParam.replaceAll("qwert", "\\\\");
+        requestParam = requestParam.replaceAll("\n", "");
+        System.out.println(requestParam);
     }
 }

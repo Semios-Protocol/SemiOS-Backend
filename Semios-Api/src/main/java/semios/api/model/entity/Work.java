@@ -1,11 +1,5 @@
 package semios.api.model.entity;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -13,9 +7,13 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import semios.api.model.dto.common.ProtoDaoConstant;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -169,12 +167,13 @@ public class Work implements Serializable {
     private String createSignHash;
 
     /**
-     * 价格类型 0-canvas_price 1-fixed_price
+     * 价格类型 0-canvas_price 1-fixed_price 2-undefined price
      */
     private Integer priceType;
 
     /**
      * 一口价
+     * 只有当work是用户上传，且类型为fixed_price时,字段才会赋值，其他情况默认都是NULL
      */
     private BigDecimal fixedPrice;
 

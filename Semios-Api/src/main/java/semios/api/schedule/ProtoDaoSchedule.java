@@ -48,87 +48,51 @@ import java.util.stream.Collectors;
 @EnableAsync
 public class ProtoDaoSchedule {
 
-    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
-    private static int number = 0;
     @Autowired
     private ISubscribeService subscribeService;
+
     @Autowired(required = false)
     private ISubscriptionService subscriptionService;
+
     @Autowired
     private IDaoDrbStatisticsService daoDrbStatisticsService;
+
     @Autowired
     private ICanvasDrbStatisticsService canvasDrbStatisticsService;
+
     @Autowired
     private CommonService commonService;
+
     @Autowired
     private IWorkService workService;
+
     @Autowired
     private IDaoService daoService;
+
     @Autowired
     private ICanvasService canvasService;
+
     @Autowired
     private ITokenReceivedRecordService tokenReceivedRecordService;
+
     @Autowired
     private IUserService userService;
+
     @Autowired(required = false)
     private IProtoDaoDexService protodaoDexService;
+
     @Autowired
     private TaskExecutor taskExecutor;
+
+    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
+
+    private static int number = 0;
+
     @Autowired
     private S3Service s3Service;
 
     @Autowired
     private IDaoDailyStatisticsService daoDailyStatisticsService;
-
-    public static void main(String[] args) throws Exception {
-//        String resBody = "{\n" +
-//                "    \"execution_id\": \"01H3VG9AH58J7WERDXCJJEPVP6\",\n" +
-//                "    \"query_id\": 2665201,\n" +
-//                "    \"state\": \"QUERY_STATE_COMPLETED\",\n" +
-//                "    \"submitted_at\": \"2023-06-26T09:24:18.085594Z\",\n" +
-//                "    \"expires_at\": \"2023-09-24T09:24:26.031086Z\",\n" +
-//                "    \"execution_started_at\": \"2023-06-26T09:24:18.173293Z\",\n" +
-//                "    \"execution_ended_at\": \"2023-06-26T09:24:26.031085Z\",\n" +
-//                "    \"result\": {\n" +
-//                "        \"rows\": [\n" +
-//                "            {\n" +
-//                "                \"eth\": 639.142156\n" +
-//                "            }\n" +
-//                "        ],\n" +
-//                "        \"metadata\": {\n" +
-//                "            \"column_names\": [\n" +
-//                "                \"eth\"\n" +
-//                "            ],\n" +
-//                "            \"result_set_bytes\": 11,\n" +
-//                "            \"total_row_count\": 1,\n" +
-//                "            \"datapoint_count\": 1,\n" +
-//                "            \"pending_time_millis\": 87,\n" +
-//                "            \"execution_time_millis\": 7857\n" +
-//                "        }\n" +
-//                "    }\n" +
-//                "}";
-//
-//        Map<String, Object> resMap = JacksonUtil.json2map(resBody);
-//        Object result = resMap.get("result");
-//        Map<String, Object> resultMap = JacksonUtil.json2map(JacksonUtil.obj2json(result));
-//        Object rows = resultMap.get("rows");
-//        List<Map> rowsMapList = JacksonUtil.json2list(JacksonUtil.obj2json(rows), Map.class);
-//        String eth = String.valueOf(rowsMapList.get(0).get("eth"));
-//
-//        System.out.println(eth);
-//
-//        BigDecimal ethBigDecimal = new BigDecimal(eth).setScale(4, RoundingMode.FLOOR);
-//        ethBigDecimal = ethBigDecimal.multiply(new BigDecimal("1250").divide(new BigDecimal(ProtoDaoConstant.RATIO_BASE), 4, RoundingMode.FLOOR));
-//        System.out.println(ethBigDecimal);
-
-        Timestamp today = DateUtil.getBeginOfToday();
-        long todayBeginHour = DateUtil.getTimestampAfterDay(today, 0).getTime() / 1000;
-        long yesterdayBeginHour = DateUtil.getTimestampAfterDay(today, -1).getTime() / 1000;
-        System.out.println(todayBeginHour);
-        System.out.println(yesterdayBeginHour);
-
-
-    }
 
     @Async
     @Scheduled(cron = "0 0/5 * * * ? ")
@@ -212,6 +176,29 @@ public class ProtoDaoSchedule {
         }
     }
 
+    @Async
+    @Scheduled(cron = "0 0/10 * * * ? ")
+    public void handleFailStatistics() {// 每10分钟执行一次
+        Integer drbNumber = Integer.parseInt(ProtoDaoConstant.CURRENT_ROUND) - 1;
+        List<DaoDrbStatistics> daoDrbStatisticsList = daoDrbStatisticsService.selectFailStatus(drbNumber);
+        if (!daoDrbStatisticsList.isEmpty()) {
+            log.info("[handleFailStatistics]dao size:{}", daoDrbStatisticsList.size());
+            daoDrbStatisticsList.forEach(v -> v.setTimes(v.getTimes() + 1));
+            commonService.handleDaoDrbStatistics(daoDrbStatisticsList, drbNumber);
+        }
+
+        List<CanvasDrbStatistics> canvasDrbStatisticsList = canvasDrbStatisticsService.selectFailStatus(drbNumber);
+
+        if (!canvasDrbStatisticsList.isEmpty()) {
+            log.info("[handleFailStatistics]canvas size:{}", canvasDrbStatisticsList.size());
+            canvasDrbStatisticsList.forEach(v -> v.setTimes(v.getTimes() + 1));
+            commonService.handleCanvasDrbStatistics(canvasDrbStatisticsList, drbNumber);
+            // 计算当前drb铸造收益
+            commonService.handleCurrentDrbMinterProfit(canvasDrbStatisticsList, drbNumber);
+        }
+
+    }
+
 //    @Async
 //    @Scheduled(cron = "0 0/10 * * * ? ")
 //    public void handleCurrentDrb() {// 每10分钟执行一次
@@ -279,29 +266,6 @@ public class ProtoDaoSchedule {
 //        }
 //
 //    }
-
-    @Async
-    @Scheduled(cron = "0 0/10 * * * ? ")
-    public void handleFailStatistics() {// 每10分钟执行一次
-        Integer drbNumber = Integer.parseInt(ProtoDaoConstant.CURRENT_ROUND) - 1;
-        List<DaoDrbStatistics> daoDrbStatisticsList = daoDrbStatisticsService.selectFailStatus(drbNumber);
-        if (!daoDrbStatisticsList.isEmpty()) {
-            log.info("[handleFailStatistics]dao size:{}", daoDrbStatisticsList.size());
-            daoDrbStatisticsList.forEach(v -> v.setTimes(v.getTimes() + 1));
-            commonService.handleDaoDrbStatistics(daoDrbStatisticsList, drbNumber);
-        }
-
-        List<CanvasDrbStatistics> canvasDrbStatisticsList = canvasDrbStatisticsService.selectFailStatus(drbNumber);
-
-        if (!canvasDrbStatisticsList.isEmpty()) {
-            log.info("[handleFailStatistics]canvas size:{}", canvasDrbStatisticsList.size());
-            canvasDrbStatisticsList.forEach(v -> v.setTimes(v.getTimes() + 1));
-            commonService.handleCanvasDrbStatistics(canvasDrbStatisticsList, drbNumber);
-            // 计算当前drb铸造收益
-            commonService.handleCurrentDrbMinterProfit(canvasDrbStatisticsList, drbNumber);
-        }
-
-    }
 
     @Async
     @Scheduled(cron = "0 0 0/1 * * ? ")
@@ -547,6 +511,7 @@ public class ProtoDaoSchedule {
     @Scheduled(cron = "0/30 * * * * ? ")
     public void syncDexForErc20() {
         log.info("[syncDexForErc20] running...");
+        // TODO 1.12 需要同步并且不是三方20的node
         List<Dao> daoList = daoService.syncDexForErc20();
         for (Dao dao : daoList) {
             if (dao.getDaoStatus() < 0) {
@@ -679,6 +644,44 @@ public class ProtoDaoSchedule {
         log.info("[syncDaoReward] ending...");
     }
 
+    //    @Async
+    //    @Scheduled(cron = "0/30 * * * * ? ")
+    @Deprecated
+    public void syncDaoStart() {
+        log.info("[syncDaoStart] running...");
+        List<Dao> daoList = daoService.syncDaoStatus();
+        if (daoList != null && daoList.size() > 0) {
+            long time = System.currentTimeMillis() / 1000;
+            for (Dao dao : daoList) {
+                if (time - Long.parseLong(dao.getBlockTime()) > 35) {
+                    Dao updateDao = new Dao();
+                    updateDao.setId(dao.getId());
+                    updateDao.setDaoStatus(DaoStatusEnum.NOT_STARTED.getStatus());
+                    if (dao.getDaoStartDrb() != null
+                            && Integer.valueOf(ProtoDaoConstant.CURRENT_ROUND).compareTo(dao.getDaoStartDrb()) >= 0) {
+                        updateDao.setDaoStatus(DaoStatusEnum.STARTED.getStatus());
+
+                        if (dao.getRoyaltyTokenLotteryMode() != null && dao.getRoyaltyTokenLotteryMode() == 1) {
+                            DaoDrbStatistics daoDrbStatistics1 = new DaoDrbStatistics();
+                            daoDrbStatistics1.setFloorPrice(dao.getDaoFloorPrice());
+                            daoDrbStatistics1.setDaoId(dao.getId());
+                            daoDrbStatistics1.setStatus(StatisticsStatusEnum.WJS.getStatus());
+                            daoDrbStatistics1.setDrbVol(BigDecimal.ZERO);
+                            daoDrbStatistics1.setDrbVolExTax(BigDecimal.ZERO);
+
+                            daoDrbStatistics1.setDrbNumber(Integer.valueOf(ProtoDaoConstant.CURRENT_ROUND));
+                            log.info("[syncDaoStart] daoId:{} start add DaoDrbStatistics daoStatus:{}", dao.getId(), updateDao.getDaoStatus());
+                            daoDrbStatisticsService.updateDaoAndDaoDrbStatistics(daoDrbStatistics1, updateDao);
+                            continue;
+                        }
+                    }
+                    log.info("[syncDaoStart] daoId:{} daoStatus:{}", dao.getId(), updateDao.getDaoStatus());
+                    daoService.updateById(updateDao);
+                }
+            }
+        }
+    }
+
 //    @Async
 //    @Scheduled(cron = "0 30 0/12 * * ? ")
 //    public void daoRoyaltyFee() throws Exception {
@@ -729,43 +732,6 @@ public class ProtoDaoSchedule {
 //
 //    }
 
-    //    @Async
-    //    @Scheduled(cron = "0/30 * * * * ? ")
-    @Deprecated
-    public void syncDaoStart() {
-        log.info("[syncDaoStart] running...");
-        List<Dao> daoList = daoService.syncDaoStatus();
-        if (daoList != null && daoList.size() > 0) {
-            long time = System.currentTimeMillis() / 1000;
-            for (Dao dao : daoList) {
-                if (time - Long.parseLong(dao.getBlockTime()) > 35) {
-                    Dao updateDao = new Dao();
-                    updateDao.setId(dao.getId());
-                    updateDao.setDaoStatus(DaoStatusEnum.NOT_STARTED.getStatus());
-                    if (dao.getDaoStartDrb() != null
-                            && Integer.valueOf(ProtoDaoConstant.CURRENT_ROUND).compareTo(dao.getDaoStartDrb()) >= 0) {
-                        updateDao.setDaoStatus(DaoStatusEnum.STARTED.getStatus());
-
-                        if (dao.getRoyaltyTokenLotteryMode() != null && dao.getRoyaltyTokenLotteryMode() == 1) {
-                            DaoDrbStatistics daoDrbStatistics1 = new DaoDrbStatistics();
-                            daoDrbStatistics1.setFloorPrice(dao.getDaoFloorPrice());
-                            daoDrbStatistics1.setDaoId(dao.getId());
-                            daoDrbStatistics1.setStatus(StatisticsStatusEnum.WJS.getStatus());
-                            daoDrbStatistics1.setDrbVol(BigDecimal.ZERO);
-                            daoDrbStatistics1.setDrbVolExTax(BigDecimal.ZERO);
-
-                            daoDrbStatistics1.setDrbNumber(Integer.valueOf(ProtoDaoConstant.CURRENT_ROUND));
-                            log.info("[syncDaoStart] daoId:{} start add DaoDrbStatistics daoStatus:{}", dao.getId(), updateDao.getDaoStatus());
-                            daoDrbStatisticsService.updateDaoAndDaoDrbStatistics(daoDrbStatistics1, updateDao);
-                            continue;
-                        }
-                    }
-                    log.info("[syncDaoStart] daoId:{} daoStatus:{}", dao.getId(), updateDao.getDaoStatus());
-                    daoService.updateById(updateDao);
-                }
-            }
-        }
-    }
 
     /**
      * 30秒同步一次dao的flow流水信息
@@ -834,7 +800,7 @@ public class ProtoDaoSchedule {
             // }
 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(1000 * 1);
                 Integer tokenHolders = commonService.tokenHolders(dao.getErc20Token());
                 if (!tokenHolders.equals(dao.getTokenHolders())) {
                     Dao updateDao = new Dao();
@@ -855,6 +821,7 @@ public class ProtoDaoSchedule {
 
         log.info("[syncDaoErc20Holders] ending...");
     }
+
 
     /**
      * 30秒同步一次dao的创建work信息
@@ -1033,7 +1000,6 @@ public class ProtoDaoSchedule {
         log.info("[daoDailyStatisticsCalculate] update i:{}", i);
     }
 
-    //========================================private============================================================//
 
     /**
      * 1分钟同步一次work锁定状态
@@ -1063,6 +1029,8 @@ public class ProtoDaoSchedule {
         }
         log.info("[workLockStatusSync] ending...");
     }
+
+    //========================================private============================================================//
 
     /**
      * 计算dao当日统计信息
@@ -1182,6 +1150,7 @@ public class ProtoDaoSchedule {
         log.info("[calculateDaoDailyStatisticsNew]-daoDailyStatistic daoId:{} logTime:{} daoDailyStatistic:{} ", dao.getId(), yesterdayBeginHour, JacksonUtil.obj2json(daoDailyStatistic));
         return daoDailyStatistic;
     }
+
 
     /**
      * 定时任务，补偿dao相关的订阅事件
@@ -1355,6 +1324,56 @@ public class ProtoDaoSchedule {
             subscribeService.save(subscribe);
 
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+//        String resBody = "{\n" +
+//                "    \"execution_id\": \"01H3VG9AH58J7WERDXCJJEPVP6\",\n" +
+//                "    \"query_id\": 2665201,\n" +
+//                "    \"state\": \"QUERY_STATE_COMPLETED\",\n" +
+//                "    \"submitted_at\": \"2023-06-26T09:24:18.085594Z\",\n" +
+//                "    \"expires_at\": \"2023-09-24T09:24:26.031086Z\",\n" +
+//                "    \"execution_started_at\": \"2023-06-26T09:24:18.173293Z\",\n" +
+//                "    \"execution_ended_at\": \"2023-06-26T09:24:26.031085Z\",\n" +
+//                "    \"result\": {\n" +
+//                "        \"rows\": [\n" +
+//                "            {\n" +
+//                "                \"eth\": 639.142156\n" +
+//                "            }\n" +
+//                "        ],\n" +
+//                "        \"metadata\": {\n" +
+//                "            \"column_names\": [\n" +
+//                "                \"eth\"\n" +
+//                "            ],\n" +
+//                "            \"result_set_bytes\": 11,\n" +
+//                "            \"total_row_count\": 1,\n" +
+//                "            \"datapoint_count\": 1,\n" +
+//                "            \"pending_time_millis\": 87,\n" +
+//                "            \"execution_time_millis\": 7857\n" +
+//                "        }\n" +
+//                "    }\n" +
+//                "}";
+//
+//        Map<String, Object> resMap = JacksonUtil.json2map(resBody);
+//        Object result = resMap.get("result");
+//        Map<String, Object> resultMap = JacksonUtil.json2map(JacksonUtil.obj2json(result));
+//        Object rows = resultMap.get("rows");
+//        List<Map> rowsMapList = JacksonUtil.json2list(JacksonUtil.obj2json(rows), Map.class);
+//        String eth = String.valueOf(rowsMapList.get(0).get("eth"));
+//
+//        System.out.println(eth);
+//
+//        BigDecimal ethBigDecimal = new BigDecimal(eth).setScale(4, RoundingMode.FLOOR);
+//        ethBigDecimal = ethBigDecimal.multiply(new BigDecimal("1250").divide(new BigDecimal(ProtoDaoConstant.RATIO_BASE), 4, RoundingMode.FLOOR));
+//        System.out.println(ethBigDecimal);
+
+        Timestamp today = DateUtil.getBeginOfToday();
+        long todayBeginHour = DateUtil.getTimestampAfterDay(today, 0).getTime() / 1000;
+        long yesterdayBeginHour = DateUtil.getTimestampAfterDay(today, -1).getTime() / 1000;
+        System.out.println(todayBeginHour);
+        System.out.println(yesterdayBeginHour);
+
+
     }
 
 }

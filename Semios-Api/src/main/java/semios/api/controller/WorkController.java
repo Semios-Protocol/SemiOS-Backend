@@ -27,8 +27,8 @@ import semios.api.model.enums.*;
 import semios.api.model.exceptions.PausedException;
 import semios.api.model.vo.PageVo;
 import semios.api.model.vo.req.*;
-import semios.api.model.vo.res.BaseWorkVo.WorkNftDetailsVo;
 import semios.api.model.vo.res.*;
+import semios.api.model.vo.res.BaseWorkVo.WorkNftDetailsVo;
 import semios.api.model.vo.res.NodePermission.CreateNodeId;
 import semios.api.service.*;
 import semios.api.service.common.CommonService;
@@ -62,40 +62,47 @@ import java.util.stream.Collectors;
 @RequestMapping("/work")
 public class WorkController {
 
-    private static final RestTemplate restTemplate = new RestTemplate();
     @Autowired
     private IWorkService workService;
+
     @Autowired
     private IFavoritesService favoritesService;
+
     @Autowired
     private IUserService userService;
+
     @Autowired
     private IDaoService daoService;
+
     @Autowired
     private ICanvasService canvasService;
+
     @Autowired
     private S3Service s3Service;
+
     @Value("${file.dir}")
     private String fileDir;
+
     @Autowired
     private EIP712Message eip712Message;
+
     @Value("${network.id}")
     private Integer networkId;
+
     @Autowired
     private CommonService commonService;
+
     @Autowired
     private IDaoDrbStatisticsService daoDrbStatisticsService;
+
     @Autowired
     private IDaoAllocationStrategyService daoAllocationStrategyService;
+
     @Autowired(required = false)
     private ISubscriptionService iSubscriptionService;
 
-    public static void main(String[] args) {
-        WorkEditResVo workEditResVo = new WorkEditResVo();
-        Work work = new Work();
-        work.setSocialLinks("");
 
-    }
+    private static final RestTemplate restTemplate = new RestTemplate();
 
     /**
      * 1.6 work详情接口 添加比例
@@ -538,6 +545,7 @@ public class WorkController {
         return result;
 
     }
+
 
     /**
      * 1.6.1 explore下nft列表(图片形式) P0
@@ -1272,6 +1280,7 @@ public class WorkController {
         return result;
     }
 
+
     /**
      * 查询是否有铸造work的权限
      */
@@ -1527,6 +1536,14 @@ public class WorkController {
                     work.setFixedPrice(dao.getDaoFloorPrice());
                 }
             }
+
+            // 如果dao开启了全局一口价,这个work的价格类型就是undified price
+            if (dao.getGlobalDaoPrice() != null && dao.getGlobalDaoPrice().compareTo(BigDecimal.ZERO) >= 0) {
+                work.setPriceType(WorkPriceTypeEnum.DAO_GLOBAL_PRICE.getType());  // 全局一口价类型
+                work.setFixedPrice(null);
+            }
+
+
 //            if (StringUtils.isNotBlank(workCreateReqVo.getFixedPrice())
 //                    && !"null".equals(workCreateReqVo.getFixedPrice())) {
 //                work.setFixedPrice(new BigDecimal(workCreateReqVo.getFixedPrice()));
@@ -1638,6 +1655,7 @@ public class WorkController {
 
     }
 
+
     /**
      * 1.6.1 个人中心界面 我上传的work(图片形式) P1
      */
@@ -1672,6 +1690,7 @@ public class WorkController {
         return result;
 
     }
+
 
     /**
      * 1.5 用户铸造top-up nodes下作品
@@ -1796,6 +1815,7 @@ public class WorkController {
         return result;
     }
 
+
     /**
      * 1.5 work详情中的top-up balance信息
      *
@@ -1897,6 +1917,14 @@ public class WorkController {
         }
         result.setData(createNodeId);
         return result;
+
+    }
+
+
+    public static void main(String[] args) {
+        WorkEditResVo workEditResVo = new WorkEditResVo();
+        Work work = new Work();
+        work.setSocialLinks("");
 
     }
 }

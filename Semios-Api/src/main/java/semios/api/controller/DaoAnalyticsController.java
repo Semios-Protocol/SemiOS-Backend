@@ -35,6 +35,7 @@ import semios.api.utils.JacksonUtil;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -56,156 +57,58 @@ import java.util.stream.Collectors;
 @RequestMapping("/dao/analytics")
 public class DaoAnalyticsController {
 
+    @Autowired
+    private IWorkService workService;
+
+    @Autowired
+    private IDaoService daoService;
+
+    @Autowired
+    private ICanvasService canvasService;
+
+    @Autowired
+    private IUserService userService;
+
+    @Autowired
+    private IDaoDrbStatisticsService daoDrbStatisticsService;
+
+    @Autowired
+    private ITokenReceivedRecordService tokenReceivedRecordService;
+
+    @Autowired(required = false)
+    private ISubscriptionService iSubscriptionService;
+
+    @Autowired(required = false)
+    private IProtoDaoDexService protoDaoDexService;
+
+    @Autowired
+    private IDaoAllocationStrategyService daoAllocationStrategyService;
+
+    @Autowired
+    private IDaoDailyStatisticsService daoDailyStatisticsService;
+
+    @Autowired
+    private CommonService commonService;
+
+    @Autowired
+    private IFavoritesService favoritesService;
+
+    @Autowired
+    private ITreasuryTransactionService treasuryTransactionService;
+
+    @Autowired
+    private IWorkTopupHarvestService workTopupHarvestService;
+
+    @Value("${user_profile_image}")
+    private String headImage;
+
     private static final int FIVE = 5;
     private static final int SIX = 6;
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final String PRE_LOG = "[DaoAnalyticsController]-";
+
     private static final List<String> COLOR_LIST =
             Arrays.asList("#2ECAA9,#42BC83,#6BC5B0,#2BC9BF,#7EB991,#53F1D5,#96E0BD,#40A5BB,#61D9BC,#ADFFC9".split(","));
-    @Autowired
-    private IWorkService workService;
-    @Autowired
-    private IDaoService daoService;
-    @Autowired
-    private ICanvasService canvasService;
-    @Autowired
-    private IUserService userService;
-    @Autowired
-    private IDaoDrbStatisticsService daoDrbStatisticsService;
-    @Autowired
-    private ITokenReceivedRecordService tokenReceivedRecordService;
-    @Autowired(required = false)
-    private ISubscriptionService iSubscriptionService;
-    @Autowired(required = false)
-    private IProtoDaoDexService protoDaoDexService;
-    @Autowired
-    private IDaoAllocationStrategyService daoAllocationStrategyService;
-    @Autowired
-    private IDaoDailyStatisticsService daoDailyStatisticsService;
-    @Autowired
-    private CommonService commonService;
-    @Autowired
-    private IFavoritesService favoritesService;
-    @Autowired
-    private ITreasuryTransactionService treasuryTransactionService;
-    @Autowired
-    private IWorkTopupHarvestService workTopupHarvestService;
-    @Value("${user_profile_image}")
-    private String headImage;
-
-    public static void main(String[] args) {
-
-//        String startBlock = CommonUtil.tenToHex(Integer.parseInt("10340666"));
-//        System.out.println(startBlock);
-//        long nextMintWindowStartTime = new BigDecimal(String.valueOf("1705027908"))
-//                .add(new BigDecimal("0").add(BigDecimal.ONE).multiply(new BigDecimal("5222285092491838455168")
-//                        .divide(new BigDecimal("217595212187159935632"), 18, RoundingMode.HALF_UP)
-//                        .multiply(new BigDecimal("60")).multiply(new BigDecimal("60")))).longValue();
-//        long currentTime = System.currentTimeMillis() / 1000;
-//        System.out.println(nextMintWindowStartTime);
-//        System.out.println(currentTime);
-//        System.out.println(nextMintWindowStartTime - currentTime);
-
-
-        BigDecimal denominator = new BigDecimal("217595212187159935632").divide(new BigDecimal("1e18"));  // 分母=每小时出块数量
-        log.info("分母=每小时出块数量:" + denominator);
-
-        BigDecimal blockNumber = new BigDecimal("10430803"); // 当前区块数
-        log.info("当前区块数:" + blockNumber);
-        BigDecimal startBlockNumber = new BigDecimal("10428911"); // 开始区块
-        log.info("开始区块:" + startBlockNumber);
-        log.info("当前-开始：" + blockNumber.subtract(startBlockNumber));
-
-        BigDecimal currentRound = new BigDecimal(9 - 1);   // 当前周期数
-        log.info("当前周期数:" + currentRound);
-        log.info("已经计算完成的区块数：" + currentRound.multiply(denominator));
-
-        BigDecimal numThisCurrentRound = blockNumber.subtract(startBlockNumber).subtract(currentRound.multiply(denominator));
-        log.info("当前周期内已经出了多少块:" + numThisCurrentRound);
-        BigDecimal numerator = denominator.subtract(numThisCurrentRound);
-        log.info("分子：还有多少块到下个周期:" + numerator);
-
-        BigDecimal proportion = numerator.divide(denominator, 2, RoundingMode.HALF_UP);
-        DecimalFormat percentFormat = new DecimalFormat("#.##");
-        percentFormat.setMultiplier(100);
-        String percentResult = percentFormat.format(proportion);
-        log.info("percentResult:" + percentResult);
-
-
-        // 倒计时时间 还有多少块到下个周期*12(每个块的时间) *1000 转为毫秒
-        Long countdown = numerator.multiply(new BigDecimal("16.5")).multiply(new BigDecimal("1000")).longValue();
-        log.info("countdown:" + countdown);
-        //countdown = 82653204L;
-
-        long seconds = countdown / 1000; // 一共有多少秒
-        long hours = seconds / 3600;    // 剩余小时数
-        long minutes = (seconds % 3600) / 60;   // 剩余分钟数
-        long remainingSeconds = seconds % 60;   // 剩余秒数
-
-        System.out.println(hours + " hours " + minutes + " minutes " + remainingSeconds + " seconds");
-
-
-        // 用未跑完的块数*12秒得到倒计时...
-
-
-//        String object = "{\n" +
-//                "    \"time\":\n" +
-//                "    [\n" +
-//                "        1702684800,\n" +
-//                "        1702771200,\n" +
-//                "        1702857600,\n" +
-//                "        1702944000,\n" +
-//                "        1703030400,\n" +
-//                "        1703116800\n" +
-//                "    ],\n" +
-//                "    \"totalAmount\":\n" +
-//                "    [\n" +
-//                "        \"0.043991747265376785\",\n" +
-//                "        \"0.043991747265376785\",\n" +
-//                "        \"0.043991747265376785\",\n" +
-//                "        \"0.043991747265376785\",\n" +
-//                "        \"0.043991747265376785\",\n" +
-//                "        \"0.043991747265376785\"\n" +
-//                "    ],\n" +
-//                "    \"incomes\":\n" +
-//                "    [\n" +
-//                "        \"0.3451456\",\n" +
-//                "        \"0.3452456\",\n" +
-//                "        \"0.34534564\",\n" +
-//                "        \"0.4544564\",\n" +
-//                "        \"0.3455656345\",\n" +
-//                "        \"0.5463534\"\n" +
-//                "    ],\n" +
-//                "    \"costs\":\n" +
-//                "    [\n" +
-//                "        \"0.153452\",\n" +
-//                "        \"0.452345345\",\n" +
-//                "        \"0.453534534\",\n" +
-//                "        \"0.4534435345\",\n" +
-//                "        \"0.3534534\",\n" +
-//                "        \"0.34536\"\n" +
-//                "    ],\n" +
-//                "    \"changes\":\n" +
-//                "    [\n" +
-//                "        \"0.1345\",\n" +
-//                "        \"0.2354\",\n" +
-//                "        \"0.5345343\",\n" +
-//                "        \"0.354\",\n" +
-//                "        \"0.53455\",\n" +
-//                "        \"0.345346\"\n" +
-//                "    ],\n" +
-//                "    \"maxTotalAmount\": \"0.043991747265376785\",\n" +
-//                "    \"maxIncomes\": \"0.5463534\",\n" +
-//                "    \"maxCosts\": \"0.453534534\",\n" +
-//                "    \"maxChanges\": \"0.53455\"\n" +
-//                "}";
-//        AssetPoolEthResVo assetPoolEthResVo = JacksonUtil.json2pojo(object, AssetPoolEthResVo.class);
-//        System.out.println(JacksonUtil.obj2json(assetPoolEthResVo));
-
-//        Timestamp today = DateUtil.getBeginOfToday();
-//        long sevenDayBeginHour = DateUtil.getTimestampAfterDay(today, -6).getTime() / 1000;
-//        System.out.println(sevenDayBeginHour);
-    }
 
     /**
      * Analytics模块 头部6个统计信息 1.7
@@ -591,7 +494,11 @@ public class DaoAnalyticsController {
                     // 判断是否为合约地址
                     daoTopOwnersResVo.setName(work.getOwnerAddress().substring(2, 8).toUpperCase());
                     daoTopOwnersResVo.setAddress(work.getOwnerAddress());
-                    Random random = new Random();
+                    // Random random = new Random();
+                    SecureRandom random = new SecureRandom(); // Compliant for security-sensitive use cases
+                    byte[] bytes = new byte[20];
+                    random.nextBytes(bytes);
+
                     int i = random.nextInt(32) + 1;
                     String avatar = String.format(headImage, i);
                     daoTopOwnersResVo.setHeadImg(avatar);
@@ -1226,6 +1133,7 @@ public class DaoAnalyticsController {
         return result;
     }
 
+
     /**
      * 1.4 dao的eth的分配比例
      */
@@ -1324,8 +1232,9 @@ public class DaoAnalyticsController {
         return result;
     }
 
+
     /**
-     * 1.4.2 聚合dao的详情页面 （参数daoId为聚合dao的daoID）
+     * 1.12 修改接口 1.4.2 聚合dao的详情页面 （参数daoId为聚合dao的daoID）
      */
     @PostMapping(value = "/togetherDao/info")
     public Result<TogetherDaoDetailVo> togetherDaoInfo(@RequestBody DaoIdReqVo daoIdReqVo,
@@ -1352,11 +1261,15 @@ public class DaoAnalyticsController {
             }
         }
 
+        // 1.12加入maker信息
+        togetherDaoDetailVo.setTogetherDaoMakerVo(transferTogetherDaoMakerVo(dao));
+
         result.setData(togetherDaoDetailVo);
 
         return result;
 
     }
+
 
     /**
      * 1.4.2 聚合dao的详情页面 （参数daoId为聚合dao的daoID）
@@ -1441,6 +1354,7 @@ public class DaoAnalyticsController {
         return result;
 
     }
+
 
     /**
      * 1.4.2 聚合dao的ERC20信息 （参数daoId为聚合dao的daoID）
@@ -1541,6 +1455,7 @@ public class DaoAnalyticsController {
 
     }
 
+
     /**
      * 1.4.2 聚合dao的Maker信息 maker的定义为参与过这一系列DAO下的任何一个top-up模式dao的铸造。
      * （参数daoId为聚合dao的daoID）
@@ -1580,14 +1495,12 @@ public class DaoAnalyticsController {
 //        BigDecimal tokenAmount = userTopupHarvestList.stream().filter(v -> v.getErc20Amount() != null).map(UserTopupHarvest::getErc20Amount).reduce(BigDecimal.ZERO, BigDecimal::add);
 //        togetherDaoMakerVo.setNoSpendEthAmount(ethAmount.stripTrailingZeros().toPlainString());
 //        togetherDaoMakerVo.setNoSpendTokenAmount(tokenAmount.stripTrailingZeros().toPlainString());
-
-        String existDaoId = StringUtils.isBlank(dao.getExistDaoId()) ? dao.getProjectId() : dao.getExistDaoId();
-        TogetherDaoMakerVo togetherDaoMakerVo = workTopupHarvestService.getTogetherDaoMakerVo(existDaoId);
-        result.setData(togetherDaoMakerVo);
+        result.setData(transferTogetherDaoMakerVo(dao));
 
         return result;
 
     }
+
 
     /**
      * 1.6 聚合dao的Maker信息页面
@@ -1665,6 +1578,7 @@ public class DaoAnalyticsController {
         return result;
     }
 
+
     /**
      * 1.6 聚合dao的Treasury页面信息
      * （参数daoId为聚合dao的daoID）
@@ -1695,6 +1609,7 @@ public class DaoAnalyticsController {
         result.setData(togetherDaoTreasuryInfoVo);
         return result;
     }
+
 
     /**
      * 1.6 聚合dao的Treasury页面信息
@@ -1821,10 +1736,8 @@ public class DaoAnalyticsController {
 
     }
 
-    // ==============================private separate============================================//
-
     /**
-     * 1.4.2 dao详情页
+     * 1.12 修改接口 dao详情页
      */
     @PostMapping(value = "/detail/v2")
     public Result<DaoDetailV2Vo> daoDetailV2(@RequestBody(required = false) DaoIdReqVo daoIdReqVo,
@@ -1853,6 +1766,9 @@ public class DaoAnalyticsController {
                 daoDetailVo.setMainDaoId(togetherDao.getId());
                 daoDetailVo.setMainDaoName(togetherDao.getDaoName());
                 daoDetailVo.setMainDaoProjectId(togetherDao.getProjectId());
+
+                // 1.12加入maker信息
+                daoDetailVo.setTogetherDaoMakerVo(transferTogetherDaoMakerVo(dao));
             }
         }
 
@@ -2008,6 +1924,8 @@ public class DaoAnalyticsController {
         return result;
     }
 
+    // ==============================private separate============================================//
+
     /**
      * 构造查询时间
      *
@@ -2073,6 +1991,126 @@ public class DaoAnalyticsController {
 
     private TreasuryTogetherDaoListVo transferTreasuryTogetherDaoListVo(Dao dao) {
         return TreasuryTogetherDaoListVo.transfer(dao);
+    }
+
+    private TogetherDaoMakerVo transferTogetherDaoMakerVo(Dao dao) {
+        String existDaoId = StringUtils.isBlank(dao.getExistDaoId()) ? dao.getProjectId() : dao.getExistDaoId();
+        return workTopupHarvestService.getTogetherDaoMakerVo(existDaoId);
+    }
+
+
+    public static void main(String[] args) {
+
+//        String startBlock = CommonUtil.tenToHex(Integer.parseInt("10340666"));
+//        System.out.println(startBlock);
+//        long nextMintWindowStartTime = new BigDecimal(String.valueOf("1705027908"))
+//                .add(new BigDecimal("0").add(BigDecimal.ONE).multiply(new BigDecimal("5222285092491838455168")
+//                        .divide(new BigDecimal("217595212187159935632"), 18, RoundingMode.HALF_UP)
+//                        .multiply(new BigDecimal("60")).multiply(new BigDecimal("60")))).longValue();
+//        long currentTime = System.currentTimeMillis() / 1000;
+//        System.out.println(nextMintWindowStartTime);
+//        System.out.println(currentTime);
+//        System.out.println(nextMintWindowStartTime - currentTime);
+
+
+        BigDecimal denominator = new BigDecimal("217595212187159935632").divide(new BigDecimal("1e18"));  // 分母=每小时出块数量
+        log.info("分母=每小时出块数量:" + denominator);
+
+        BigDecimal blockNumber = new BigDecimal("10430803"); // 当前区块数
+        log.info("当前区块数:" + blockNumber);
+        BigDecimal startBlockNumber = new BigDecimal("10428911"); // 开始区块
+        log.info("开始区块:" + startBlockNumber);
+        log.info("当前-开始：" + blockNumber.subtract(startBlockNumber));
+
+        BigDecimal currentRound = new BigDecimal(9 - 1);   // 当前周期数
+        log.info("当前周期数:" + currentRound);
+        log.info("已经计算完成的区块数：" + currentRound.multiply(denominator));
+
+        BigDecimal numThisCurrentRound = blockNumber.subtract(startBlockNumber).subtract(currentRound.multiply(denominator));
+        log.info("当前周期内已经出了多少块:" + numThisCurrentRound);
+        BigDecimal numerator = denominator.subtract(numThisCurrentRound);
+        log.info("分子：还有多少块到下个周期:" + numerator);
+
+        BigDecimal proportion = numerator.divide(denominator, 2, RoundingMode.HALF_UP);
+        DecimalFormat percentFormat = new DecimalFormat("#.##");
+        percentFormat.setMultiplier(100);
+        String percentResult = percentFormat.format(proportion);
+        log.info("percentResult:" + percentResult);
+
+
+        // 倒计时时间 还有多少块到下个周期*12(每个块的时间) *1000 转为毫秒
+        Long countdown = numerator.multiply(new BigDecimal("16.5")).multiply(new BigDecimal("1000")).longValue();
+        log.info("countdown:" + countdown);
+        //countdown = 82653204L;
+
+        long seconds = countdown / 1000; // 一共有多少秒
+        long hours = seconds / 3600;    // 剩余小时数
+        long minutes = (seconds % 3600) / 60;   // 剩余分钟数
+        long remainingSeconds = seconds % 60;   // 剩余秒数
+
+        System.out.println(hours + " hours " + minutes + " minutes " + remainingSeconds + " seconds");
+
+
+        // 用未跑完的块数*12秒得到倒计时...
+
+
+//        String object = "{\n" +
+//                "    \"time\":\n" +
+//                "    [\n" +
+//                "        1702684800,\n" +
+//                "        1702771200,\n" +
+//                "        1702857600,\n" +
+//                "        1702944000,\n" +
+//                "        1703030400,\n" +
+//                "        1703116800\n" +
+//                "    ],\n" +
+//                "    \"totalAmount\":\n" +
+//                "    [\n" +
+//                "        \"0.043991747265376785\",\n" +
+//                "        \"0.043991747265376785\",\n" +
+//                "        \"0.043991747265376785\",\n" +
+//                "        \"0.043991747265376785\",\n" +
+//                "        \"0.043991747265376785\",\n" +
+//                "        \"0.043991747265376785\"\n" +
+//                "    ],\n" +
+//                "    \"incomes\":\n" +
+//                "    [\n" +
+//                "        \"0.3451456\",\n" +
+//                "        \"0.3452456\",\n" +
+//                "        \"0.34534564\",\n" +
+//                "        \"0.4544564\",\n" +
+//                "        \"0.3455656345\",\n" +
+//                "        \"0.5463534\"\n" +
+//                "    ],\n" +
+//                "    \"costs\":\n" +
+//                "    [\n" +
+//                "        \"0.153452\",\n" +
+//                "        \"0.452345345\",\n" +
+//                "        \"0.453534534\",\n" +
+//                "        \"0.4534435345\",\n" +
+//                "        \"0.3534534\",\n" +
+//                "        \"0.34536\"\n" +
+//                "    ],\n" +
+//                "    \"changes\":\n" +
+//                "    [\n" +
+//                "        \"0.1345\",\n" +
+//                "        \"0.2354\",\n" +
+//                "        \"0.5345343\",\n" +
+//                "        \"0.354\",\n" +
+//                "        \"0.53455\",\n" +
+//                "        \"0.345346\"\n" +
+//                "    ],\n" +
+//                "    \"maxTotalAmount\": \"0.043991747265376785\",\n" +
+//                "    \"maxIncomes\": \"0.5463534\",\n" +
+//                "    \"maxCosts\": \"0.453534534\",\n" +
+//                "    \"maxChanges\": \"0.53455\"\n" +
+//                "}";
+//        AssetPoolEthResVo assetPoolEthResVo = JacksonUtil.json2pojo(object, AssetPoolEthResVo.class);
+//        System.out.println(JacksonUtil.obj2json(assetPoolEthResVo));
+
+//        Timestamp today = DateUtil.getBeginOfToday();
+//        long sevenDayBeginHour = DateUtil.getTimestampAfterDay(today, -6).getTime() / 1000;
+//        System.out.println(sevenDayBeginHour);
     }
 
 }
