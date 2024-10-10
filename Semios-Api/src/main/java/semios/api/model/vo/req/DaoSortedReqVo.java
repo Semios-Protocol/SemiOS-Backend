@@ -1,6 +1,7 @@
 package semios.api.model.vo.req;
 
 import lombok.Data;
+import semios.api.model.vo.req.ExploreFilter.BaseFilter;
 
 import java.util.List;
 
@@ -10,7 +11,7 @@ import java.util.List;
  * @create: 2022-08-04 17:03
  **/
 @Data
-public class DaoSortedReqVo extends SortReqVo {
+public class DaoSortedReqVo extends BaseFilter {
 
     /**
      * dao的ID
@@ -30,26 +31,28 @@ public class DaoSortedReqVo extends SortReqVo {
     /**
      * 当前drb，不需要前端传值
      *
-     * @Ignore 忽略
+     * @ignore 忽略
      */
     private Integer currentDrb;
 
     /**
      * projectId
      *
-     * @Ignore 忽略
+     * @ignore 忽略
      */
     private String projectId;
 
     /**
      * erc20Token
      *
-     * @Ignore 忽略
+     * @ignore 忽略
      */
     private String erc20Token;
 
     /**
      * 根据指定的id查询
+     *
+     * @ignore 忽略
      */
     private List<String> daoIdList;
 }

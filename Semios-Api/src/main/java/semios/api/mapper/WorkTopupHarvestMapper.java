@@ -74,7 +74,7 @@ public interface WorkTopupHarvestMapper extends BaseMapper<WorkTopupHarvest> {
     Integer getTopupHoldersByProjectId(String projectId);
 
 
-    //    @Select("select any_value(t.project_id) as projectId,w.owner_address as userAddress from work_topup_harvest t " +
+//    @Select("select any_value(t.project_id) as projectId,w.owner_address as userAddress from work_topup_harvest t " +
 //            "  inner join work w on t.work_id = w.id " +
 //            "  inner join dao d on w.dao_id=d.id " +
 //            "  where w.owner_address = #{address} and w.drb_number=d.current_round and w.work_status=1 and w.is_del=0 " + // and (t.erc20_amount=0 and t.eth_amount=0)
@@ -83,13 +83,22 @@ public interface WorkTopupHarvestMapper extends BaseMapper<WorkTopupHarvest> {
 //            "  inner join dao d on w.dao_id = d.id " +
 //            "  where w.owner_address=#{address} and d.topup_mode=1  and w.drb_number=d.current_round and w.work_status=1  and w.is_del=0 and w.mount_work_id is not null" +
 //            "  group by d.id order by d.id desc; ")
-    @Select("select any_value(COALESCE(d.exist_dao_id, d.project_id)) as projectId,any_value(w2.owner_address) as userAddress,d.id " +
-            "from work_topup_harvest wth " +
-            "inner join work w1 on wth.work_id=w1.id " +
-            "inner join work w2 on wth.mount_work_id=w2.id " +
-            "inner join dao d on w1.dao_id = d.id " +
-            "where w2.owner_address=#{address} and d.topup_mode=1 and w1.drb_number=d.current_round and w2.work_status=1 and w2.is_del=0 " +
-            "group by d.id order by d.id desc;")
+
+//    @Select("select any_value(COALESCE(d.exist_dao_id, d.project_id)) as projectId,any_value(w2.owner_address) as userAddress,d.id " +
+//        "from work_topup_harvest wth " +
+//        "inner join work w1 on wth.work_id=w1.id " +
+//        "inner join work w2 on wth.mount_work_id=w2.id " +
+//        "inner join dao d on w1.dao_id = d.id " +
+//        "where w2.owner_address=#{address} and d.topup_mode=1 and w1.drb_number=d.current_round and w2.work_status=1 and w2.is_del=0 " +
+//        "group by d.id order by d.id desc;")
+
+    @Select("select any_value(COALESCE(d1.exist_dao_id, d1.project_id)) as projectId ,any_value(w2.owner_address) as userAddress,d1.id " +
+            "from " +
+            "work w1 " +
+            "inner join (select * from dao where topup_mode=1 and is_together_dao=0) d1 on w1.dao_id = d1.id " +
+            "inner join (select * from work where owner_address=#{address}) w2 on w1.mount_work_id = w2.id " +
+            "inner join dao d2 on d2.id = w2.dao_id " +
+            "where w1.drb_number=d1.current_round group by d1.id order by d1.id desc; ")
     List<DaoProjectVo> selectPendingBalanceByAddress(String address);
 
 
