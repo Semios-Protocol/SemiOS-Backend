@@ -144,6 +144,13 @@ public class TogetherDaoDetailVo implements Serializable {
      */
     private String daoSymbol;
 
+
+    /**
+     * 1.12 maker信息
+     */
+    private TogetherDaoMakerVo togetherDaoMakerVo;
+
+
     public static TogetherDaoDetailVo transfer(Dao dao) {
         TogetherDaoDetailVo daoDetailVo = new TogetherDaoDetailVo();
         daoDetailVo.setDaoId(dao.getId());

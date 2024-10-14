@@ -33,26 +33,6 @@ public class NewPoolsForFundingChainService implements SubscriberChainService {
     @Autowired
     private CommonService commonService;
 
-    public static void main(String[] args) {
-        String data = "0x58717bcca2312f1cb0dc5ad10138271a0fe13a57c5b157dff6eafc452ddd46d6000000000000000000000000b15e458cac809ee256339ddb8ad2af885c62fe3100000000000000000000000080e3ae9728b748d2faa045b47ce0e7091e0ed5650000000000000000000000000000000000000000000000000000000000000000";
-        List<String> dataList = CommonUtil.splitBy32Bytes(data);
-
-
-        // projectId
-        String projectId = CommonUtil.removeHexPrefixIfExists(dataList.get(0));
-        // 资产池
-        String daoAssetPool = CommonUtil.removeHexPrefixIfExists(CommonUtil.formatBytes32Address(dataList.get(1)));
-        // Redeem池
-        String daoRedeemPool = CommonUtil.removeHexPrefixIfExists(CommonUtil.formatBytes32Address(dataList.get(2)));
-        // 这个参数暂时不需要考虑，可能会被删除
-//        String daoFundingPool = CommonUtil.removeHexPrefixIfExists(CommonUtil.formatBytes32Address(dataList.get(3)));
-        // 是否为外部ERC20
-        String isThirdPartyToken = CommonUtil.removeHexPrefixIfExists(dataList.get(3));
-        System.out.println("project_id" + " is " + projectId);
-        System.out.println("daoAssetPool" + " is " + daoAssetPool);
-        System.out.println("daoRedeemPool" + " is " + daoRedeemPool);
-        System.out.println("isThirdPartyToken" + " is " + isThirdPartyToken);
-    }
 
     @Override
     public void handleTrade(TransactionDto transactionDto) throws Exception {
@@ -96,6 +76,7 @@ public class NewPoolsForFundingChainService implements SubscriberChainService {
             updateDao.setSubdaoAssetPoolBalance(erc20TotalSupply.stripTrailingZeros().toPlainString());
         }
         //第三方erc20地址不需要同步dex，也不可以redeem
+        // TODO 1.12 三方erc20可以同步dex
         if (updateDao.getIsThirdpartyToken() == 1) {
             updateDao.setSyncDex(0);
         }
@@ -117,5 +98,27 @@ public class NewPoolsForFundingChainService implements SubscriberChainService {
         daoService.updateById(updateDao);
         log.info("[NewPoolsForFundingChainService] daoId:{} updateDao:{}", dao.getId(), JacksonUtil.obj2json(updateDao));
 
+    }
+
+
+    public static void main(String[] args) {
+        String data = "0x58717bcca2312f1cb0dc5ad10138271a0fe13a57c5b157dff6eafc452ddd46d6000000000000000000000000b15e458cac809ee256339ddb8ad2af885c62fe3100000000000000000000000080e3ae9728b748d2faa045b47ce0e7091e0ed5650000000000000000000000000000000000000000000000000000000000000000";
+        List<String> dataList = CommonUtil.splitBy32Bytes(data);
+
+
+        // projectId
+        String projectId = CommonUtil.removeHexPrefixIfExists(dataList.get(0));
+        // 资产池
+        String daoAssetPool = CommonUtil.removeHexPrefixIfExists(CommonUtil.formatBytes32Address(dataList.get(1)));
+        // Redeem池
+        String daoRedeemPool = CommonUtil.removeHexPrefixIfExists(CommonUtil.formatBytes32Address(dataList.get(2)));
+        // 这个参数暂时不需要考虑，可能会被删除
+//        String daoFundingPool = CommonUtil.removeHexPrefixIfExists(CommonUtil.formatBytes32Address(dataList.get(3)));
+        // 是否为外部ERC20
+        String isThirdPartyToken = CommonUtil.removeHexPrefixIfExists(dataList.get(3));
+        System.out.println("project_id" + " is " + projectId);
+        System.out.println("daoAssetPool" + " is " + daoAssetPool);
+        System.out.println("daoRedeemPool" + " is " + daoRedeemPool);
+        System.out.println("isThirdPartyToken" + " is " + isThirdPartyToken);
     }
 }

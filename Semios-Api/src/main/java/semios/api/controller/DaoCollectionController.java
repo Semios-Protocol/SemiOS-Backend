@@ -22,9 +22,7 @@ import semios.api.model.vo.req.DaoInfo.DaoInfoVo;
 import semios.api.model.vo.req.DaoSortedReqVo;
 import semios.api.model.vo.req.SearchReqVo;
 import semios.api.model.vo.req.UserProfilePageReqVo;
-import semios.api.model.vo.res.BasicInformationVo;
-import semios.api.model.vo.res.MintWindowInfoVo;
-import semios.api.model.vo.res.ModeStatusVo;
+import semios.api.model.vo.res.*;
 import semios.api.service.IDaoService;
 import semios.api.service.IFavoritesService;
 import semios.api.service.common.CommonService;
@@ -59,9 +57,8 @@ public class DaoCollectionController {
 
 
     /**
-     * 1.9.1 collections下的dao列表--仅返回外层dao信息
+     * 1.12 collections下的dao列表--仅返回外层dao信息
      * 不用传daoID
-     * 原来的 /dao/collections
      */
     @PostMapping(value = "/info")
     public ResultList<DaoInfoVo> daoCollections(@RequestBody(required = false) DaoSortedReqVo daoSortedReqVo,
