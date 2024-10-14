@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="semios.api.mapper.WorkTopupHarvestMapper">
+
+
+    <select id="selectAllMakerInfo" resultType="semios.api.model.entity.MakerInfoStatistics">
+        select d.id                            as daoId,
+               d.project_id                    as projectId,
+               count(distinct w.owner_address) as makerAddress,
+               sum(t.erc20_amount)             as outputTokenBalance,
+               sum(t.eth_amount)               as inputTokenBalance
+        from (select id, project_id from dao where is_together_dao = 1) d
+                 left join
+             (select * from work_topup_harvest where (erc20_amount > 0 or eth_amount > 0)) t
+             on t.project_id = d.project_id
+                 inner join work w on t.mount_work_id = w.id
+        group by d.id, d.project_id;
+    </select>
+</mapper>

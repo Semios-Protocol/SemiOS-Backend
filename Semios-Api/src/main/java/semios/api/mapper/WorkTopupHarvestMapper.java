@@ -2,6 +2,7 @@ package semios.api.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Select;
+import semios.api.model.entity.MakerInfoStatistics;
 import semios.api.model.entity.WorkTopupHarvest;
 import semios.api.model.vo.req.DaoProjectVo;
 import semios.api.model.vo.res.*;
@@ -140,4 +141,11 @@ public interface WorkTopupHarvestMapper extends BaseMapper<WorkTopupHarvest> {
     @Select("select * from work_topup_harvest where mount_erc721_address=#{erc721Address} and mount_work_number=#{workNumber} limit 1;")
     WorkTopupHarvest selectOneByNft(String erc721Address, String workNumber);
 
+    //    @Select("select d.id, d.project_id ,count(distinct w.owner_address) as makerTotalAmount,sum(t.erc20_amount) as noSpendTokenAmount,sum(t.eth_amount) as noSpendEthAmount " +
+//            "from " +
+//            "    (select id,project_id from dao where is_together_dao=1) d left join " +
+//            "     (select * from work_topup_harvest where  (erc20_amount>0 or eth_amount>0) ) t on t.project_id=d.project_id " +
+//            "    inner join work w on t.mount_work_id = w.id " +
+//            "    group by d.id, d.project_id;")
+    List<MakerInfoStatistics> selectAllMakerInfo();
 }

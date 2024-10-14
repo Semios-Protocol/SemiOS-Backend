@@ -4,6 +4,7 @@ package semios.api.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 import semios.api.mapper.WorkTopupHarvestMapper;
+import semios.api.model.entity.MakerInfoStatistics;
 import semios.api.model.entity.WorkTopupHarvest;
 import semios.api.model.vo.req.DaoProjectVo;
 import semios.api.model.vo.res.*;
@@ -99,5 +100,10 @@ public class WorkTopupHarvestServiceImpl extends ServiceImpl<WorkTopupHarvestMap
     @Override
     public WorkTopupHarvest selectOneByNft(String erc721Address, String workNumber) {
         return workTopupHarvestMapper.selectOneByNft(erc721Address, workNumber);
+    }
+
+    @Override
+    public List<MakerInfoStatistics> selectAllMakerInfo() {
+        return workTopupHarvestMapper.selectAllMakerInfo();
     }
 }

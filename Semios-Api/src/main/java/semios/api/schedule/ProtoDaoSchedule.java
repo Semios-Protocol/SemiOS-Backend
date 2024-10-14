@@ -34,6 +34,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -93,6 +94,12 @@ public class ProtoDaoSchedule {
 
     @Autowired
     private IDaoDailyStatisticsService daoDailyStatisticsService;
+
+    @Autowired
+    private IMakerInfoStatisticsService makerInfoStatisticsService;
+
+    @Autowired
+    private IWorkTopupHarvestService workTopupHarvestService;
 
     @Async
     @Scheduled(cron = "0 0/5 * * * ? ")
@@ -1323,6 +1330,22 @@ public class ProtoDaoSchedule {
             }
             subscribeService.save(subscribe);
 
+        }
+    }
+
+
+    // 1.13 统计maker信息
+    @Async
+    @Scheduled(cron = "0 0 0 * * ?")
+    // @Scheduled(cron = "0 50 23 * * ?")
+    // @Scheduled(cron = "0 0/1 * * * ? ")
+    public void makerInfoStatistics() {
+        log.info("开始统计:makerInfoStatistics:");
+        List<MakerInfoStatistics> makerInfoStatisticsList = workTopupHarvestService.selectAllMakerInfo();
+        if (!makerInfoStatisticsList.isEmpty()) {
+            log.info("开始统计:makerInfoStatistics:{}", JacksonUtil.obj2json(makerInfoStatisticsList));
+            makerInfoStatisticsList.forEach(makerInfoStatistics -> makerInfoStatistics.setRecordTime(LocalDateTime.now().minusDays(1).toLocalDate()));
+            makerInfoStatisticsService.saveBatch(makerInfoStatisticsList);
         }
     }
 

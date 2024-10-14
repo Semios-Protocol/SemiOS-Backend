@@ -341,6 +341,12 @@ public class DaoDetailV2Vo implements Serializable {
      */
     private TogetherDaoMakerVo togetherDaoMakerVo;
 
+    /**
+     * 1.13 是否有分流比例设置
+     */
+    private Boolean isAllocationStrategy;
+
+
     public void setDaoAssetPool(Float daoAssetPool) {
         if (daoAssetPool != null) {
             this.daoAssetPool = daoAssetPool;
