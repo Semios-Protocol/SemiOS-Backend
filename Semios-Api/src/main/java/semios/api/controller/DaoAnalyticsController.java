@@ -1914,6 +1914,14 @@ public class DaoAnalyticsController {
         }
 
 
+        // 1.13 需要加入当前node是否开启了分流比例
+        List<DaoAllocationStrategy> daoAllocationStrategyList = daoAllocationStrategyService.selectByOriginProjectIdAndType(dao.getProjectId(), null);
+        List<DaoAllocationVo> daoTokenAllocationVos = daoAllocationStrategyList.stream().filter(v -> v.getType() == 0 && v.getRoyaltyType() == 0).map(DaoAllocationVo::transfer).collect(Collectors.toList());
+        List<DaoAllocationVo> daoEthAllocationVos = daoAllocationStrategyList.stream().filter(v -> v.getType() == 1 && v.getRoyaltyType() == 0).map(DaoAllocationVo::transfer).collect(Collectors.toList());
+
+        daoDetailVo.setIsAllocationStrategy(!daoTokenAllocationVos.isEmpty() || !daoEthAllocationVos.isEmpty());
+
+
 //        if (StringUtils.isNotBlank(dao.getDuration())) {
 //            daoDetailVo.setTotalMintWindowTime(new BigDecimal(dao.getDuration()).divide(new BigDecimal(ProtoDaoConstant.etherscanBlockNumber), 18, RoundingMode.UP)
 //                    .multiply(new BigDecimal("60")).multiply(new BigDecimal("60")).longValue());

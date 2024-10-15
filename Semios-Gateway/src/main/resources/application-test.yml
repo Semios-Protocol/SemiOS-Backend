@@ -2,7 +2,7 @@ spring:
     cloud:
         gateway:
             routes:
-                - id: protodao_api
+                - id: semios_api
                   uri: http://localhost:9480
                   predicates:
                       - Method=OPTIONS,POST,GET
@@ -11,7 +11,7 @@ spring:
                       - StripPrefix=1
 #                     - Cookie=mycookie,mycookievalue
 
-                - id: protodao_dex
+                - id: semios_dex
                   uri: http://localhost:9483
                   predicates:
                       - Method=OPTIONS,POST,GET

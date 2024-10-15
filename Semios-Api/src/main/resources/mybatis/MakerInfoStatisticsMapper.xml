@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="semios.api.mapper.MakerInfoStatisticsMapper">
+
+    <select id="analyticsTokenData"
+            resultType="semios.api.model.vo.res.Maker.AnalyticsTokenDataVo"
+            parameterType="semios.api.model.vo.req.Maker.AnalyticsTokenParam">
+        SELECT
+        DATE_FORMAT(DATE(SUBDATE(CURDATE(), 6) + INTERVAL seq DAY), '%Y/%m/%d') AS date,
+        <choose>
+            <when test="analyticsTokenParam.type == 1">
+                COALESCE(mis.input_token_balance, 0) AS tokenBalance
+            </when>
+            <when test="analyticsTokenParam.type == 2">
+                COALESCE(mis.output_token_balance, 0) AS tokenBalance
+            </when>
+            <otherwise>
+                0 AS tokenBalance
+            </otherwise>
+        </choose>
+        FROM
+        (SELECT 0 AS seq UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3
+        UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) AS seq
+        LEFT JOIN
+        maker_info_statistics mis
+        ON
+        DATE(SUBDATE(CURDATE(), 6) + INTERVAL seq.seq DAY) = DATE(mis.record_time)
+        AND mis.dao_id = #{analyticsTokenParam.daoId}
+        ORDER BY
+        DATE(SUBDATE(CURDATE(), 6) + INTERVAL seq.seq DAY);
+    </select>
+
+    <select id="getMakerInfoStatisticsList"
+            resultType="semios.api.model.vo.res.Maker.AnalyticsMakerDataVo"
+            parameterType="semios.api.model.vo.req.Maker.AnalyticsTokenParam">
+        SELECT
+            DATE_FORMAT(DATE(SUBDATE(CURDATE(), 6) + INTERVAL seq DAY), '%Y/%m/%d') AS date,
+            COALESCE(mis.maker_address, 0) AS makersCount
+        FROM
+            (SELECT 0 AS seq UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3
+             UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) AS seq
+                LEFT JOIN
+            maker_info_statistics mis
+            ON
+                DATE(SUBDATE(CURDATE(), 6) + INTERVAL seq.seq DAY) = DATE(mis.record_time)
+                    AND mis.dao_id = #{analyticsTokenParam.daoId}
+        ORDER BY
+            DATE(SUBDATE(CURDATE(), 6) + INTERVAL seq.seq DAY);
+    </select>
+
+    <select id="getMakerOwnerList" resultType="semios.api.model.vo.res.Maker.MakerOwnerListVo"
+            parameterType="java.lang.String">
+        select w.owner_address             as userAddress,
+               any_value(u.user_name)      as userName,
+               any_value(u.avatar_address) as avatarAddress,
+               sum(t.erc20_amount)         as outputTokenBalance,
+               sum(t.eth_amount)           as inputTokenBalance
+        from (select *
+              from work_topup_harvest
+              where project_id = #{projectId}) t
+                 inner join work w on t.mount_work_id = w.id
+                 left join user u on w.owner_address = u.user_address
+        where w.work_status = 1
+          and w.is_del = 0
+          and (erc20_amount > 0 or eth_amount > 0)
+        group by w.owner_address
+        order by inputTokenBalance desc, outputTokenBalance desc limit 100;
+    </select>
+</mapper>

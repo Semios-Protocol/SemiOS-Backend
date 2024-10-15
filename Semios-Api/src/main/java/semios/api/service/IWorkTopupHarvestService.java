@@ -1,6 +1,7 @@
 package semios.api.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import semios.api.model.entity.MakerInfoStatistics;
 import semios.api.model.entity.WorkTopupHarvest;
 import semios.api.model.vo.req.DaoProjectVo;
 import semios.api.model.vo.res.*;
@@ -45,4 +46,5 @@ public interface IWorkTopupHarvestService extends IService<WorkTopupHarvest> {
 
     WorkTopupHarvest selectOneByNft(String erc721Address, String workNumber);
 
+    List<MakerInfoStatistics> selectAllMakerInfo();
 }
